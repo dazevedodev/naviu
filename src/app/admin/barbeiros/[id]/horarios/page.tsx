@@ -38,9 +38,15 @@ export default async function HorariosBarbeiroPage({
       <Link href="/admin/barbeiros" className="text-xs text-zinc-500 hover:underline">
         ← Barbeiros
       </Link>
-      <h1 className="mb-6 mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="mb-1 mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
         Horários de {barbeiro.nome}
       </h1>
+      <Link
+        href={`/admin/barbeiros/${id}/bloqueios`}
+        className="mb-6 inline-block text-xs text-zinc-500 hover:underline"
+      >
+        Ver folgas →
+      </Link>
 
       <div className="mb-6">
         <AplicarPadraoForm barbeiroId={id} />
