@@ -1,14 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { montarLinkWhatsApp, preencherTemplateMensagem } from "@/lib/whatsapp";
+import { formatarDataBrasilia, formatarHoraBrasilia, horarioBrasilia, hojeISOBrasilia } from "@/lib/timezone";
 import { AgendamentoRow } from "./agendamento-row";
 import type { FormaPagamento } from "@/lib/types";
 
 function inicioFimDoDia() {
-  const inicio = new Date();
-  inicio.setHours(0, 0, 0, 0);
-  const fim = new Date(inicio);
-  fim.setDate(fim.getDate() + 1);
+  const inicio = horarioBrasilia(hojeISOBrasilia(), "00:00");
+  const fim = new Date(inicio.getTime() + 24 * 60 * 60_000);
   return { inicio: inicio.toISOString(), fim: fim.toISOString() };
 }
 
@@ -78,11 +77,8 @@ export default async function AgendaPage() {
                     barbearia: barbearia.nome,
                     barbeiro: b.nome,
                     servico: servico?.nome ?? "",
-                    data: dataHora.toLocaleDateString("pt-BR"),
-                    hora: dataHora.toLocaleTimeString("pt-BR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
+                    data: formatarDataBrasilia(dataHora),
+                    hora: formatarHoraBrasilia(dataHora),
                   };
                   const mensagem = preencherTemplateMensagem(
                     lembrete ? barbearia.mensagem_lembrete : barbearia.mensagem_confirmacao,

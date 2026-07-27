@@ -32,16 +32,20 @@ export async function GET(
 
   const inicio = new Date(agendamento.data_hora);
 
+  // Componentes extraídos em UTC (não local) + startInputType "utc": o
+  // resultado não depende do fuso do processo rodando o código (dev local
+  // costuma ser America/Sao_Paulo, mas o servidor de produção roda em UTC).
   const { error, value } = createEvent({
     title: `${servico.nome} — ${barbearia.nome}`,
     location: barbearia.endereco ?? undefined,
     start: [
-      inicio.getFullYear(),
-      inicio.getMonth() + 1,
-      inicio.getDate(),
-      inicio.getHours(),
-      inicio.getMinutes(),
+      inicio.getUTCFullYear(),
+      inicio.getUTCMonth() + 1,
+      inicio.getUTCDate(),
+      inicio.getUTCHours(),
+      inicio.getUTCMinutes(),
     ],
+    startInputType: "utc",
     duration: { minutes: servico.duracao_min },
   });
 

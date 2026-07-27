@@ -1,20 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { gerarSlotsDisponiveis } from "./slots";
+import { horarioBrasilia } from "./timezone";
 
 // Segunda-feira, 2026-08-03 (dia_semana = 1)
-const SEGUNDA = new Date(2026, 7, 3);
+const SEGUNDA_ISO = "2026-08-03";
 
 function horario(hora: string) {
-  const [h, m] = hora.split(":").map(Number);
-  const d = new Date(SEGUNDA);
-  d.setHours(h, m, 0, 0);
-  return d;
+  return horarioBrasilia(SEGUNDA_ISO, hora);
 }
 
 describe("gerarSlotsDisponiveis", () => {
   it("gera slots a cada 15min dentro da janela de trabalho", () => {
     const slots = gerarSlotsDisponiveis({
-      data: SEGUNDA,
+      dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
       horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "12:00" }],
@@ -28,7 +26,7 @@ describe("gerarSlotsDisponiveis", () => {
 
   it("não inclui horário só para o dia da semana correspondente", () => {
     const slots = gerarSlotsDisponiveis({
-      data: SEGUNDA,
+      dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
       horariosTrabalho: [{ dia_semana: 2, hora_inicio: "09:00", hora_fim: "12:00" }],
@@ -40,7 +38,7 @@ describe("gerarSlotsDisponiveis", () => {
 
   it("remove slots que colidem com um intervalo ocupado", () => {
     const slots = gerarSlotsDisponiveis({
-      data: SEGUNDA,
+      dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
       horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "10:00" }],
@@ -54,12 +52,11 @@ describe("gerarSlotsDisponiveis", () => {
   });
 
   it("bloqueio de dia inteiro remove todos os slots", () => {
-    const inicioDia = new Date(SEGUNDA);
-    const fimDia = new Date(SEGUNDA);
-    fimDia.setDate(fimDia.getDate() + 1);
+    const inicioDia = horarioBrasilia(SEGUNDA_ISO, "00:00");
+    const fimDia = new Date(inicioDia.getTime() + 24 * 60 * 60_000);
 
     const slots = gerarSlotsDisponiveis({
-      data: SEGUNDA,
+      dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
       horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "12:00" }],
@@ -71,7 +68,7 @@ describe("gerarSlotsDisponiveis", () => {
 
   it("ignora horários que já passaram quando `agora` é informado", () => {
     const slots = gerarSlotsDisponiveis({
-      data: SEGUNDA,
+      dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
       horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "10:00" }],
@@ -84,7 +81,7 @@ describe("gerarSlotsDisponiveis", () => {
 
   it("soma janelas de múltiplos intervalos no mesmo dia", () => {
     const slots = gerarSlotsDisponiveis({
-      data: SEGUNDA,
+      dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 60,
       horariosTrabalho: [

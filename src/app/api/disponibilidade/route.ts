@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { gerarSlotsDisponiveis } from "@/lib/slots";
+import { diaSemanaDeData, horarioBrasilia } from "@/lib/timezone";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -15,10 +16,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = new Date(`${dataStr}T00:00:00`);
-  if (Number.isNaN(data.getTime())) {
+  const inicioDia = horarioBrasilia(dataStr, "00:00");
+  if (Number.isNaN(inicioDia.getTime())) {
     return NextResponse.json({ error: "data inválida." }, { status: 400 });
   }
+  const fimDia = new Date(inicioDia.getTime() + 24 * 60 * 60_000);
 
   // Endpoint público: usa service_role porque `agendamentos` só é legível via
   // RLS pelo dono da barbearia, e aqui precisamos ver os horários já ocupados
@@ -40,10 +42,6 @@ export async function GET(request: NextRequest) {
     .select("dia_semana, hora_inicio, hora_fim")
     .eq("barbeiro_id", barbeiroId);
 
-  const inicioDia = new Date(data);
-  const fimDia = new Date(data);
-  fimDia.setDate(fimDia.getDate() + 1);
-
   const { data: bloqueios } = await supabase
     .from("bloqueios")
     .select("hora_inicio, hora_fim")
@@ -61,13 +59,10 @@ export async function GET(request: NextRequest) {
   const ocupados = [
     ...(bloqueios ?? []).map((b) => {
       if (b.hora_inicio && b.hora_fim) {
-        const [hi, mi] = b.hora_inicio.split(":").map(Number);
-        const [hf, mf] = b.hora_fim.split(":").map(Number);
-        const inicio = new Date(data);
-        inicio.setHours(hi, mi, 0, 0);
-        const fim = new Date(data);
-        fim.setHours(hf, mf, 0, 0);
-        return { inicio, fim };
+        return {
+          inicio: horarioBrasilia(dataStr, b.hora_inicio.slice(0, 5)),
+          fim: horarioBrasilia(dataStr, b.hora_fim.slice(0, 5)),
+        };
       }
       return { inicio: inicioDia, fim: fimDia }; // dia inteiro
     }),
@@ -79,8 +74,8 @@ export async function GET(request: NextRequest) {
   ];
 
   const slots = gerarSlotsDisponiveis({
-    data,
-    diaSemana: data.getDay(),
+    dataISO: dataStr,
+    diaSemana: diaSemanaDeData(dataStr),
     duracaoServicoMin: servico.duracao_min,
     horariosTrabalho: horarios ?? [],
     ocupados,

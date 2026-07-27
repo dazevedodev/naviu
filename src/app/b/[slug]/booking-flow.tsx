@@ -9,10 +9,20 @@ type SlotComBarbeiro = { iso: string; barbeiroId: string };
 
 const QUALQUER = "qualquer";
 
+const FUSO_BRASILIA = "America/Sao_Paulo";
+
+// Data de "hoje" no fuso de Brasília, não no fuso do dispositivo do
+// visitante — o que importa aqui é o dia da barbearia, não de onde o
+// cliente está acessando.
 function hojeISO() {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 10);
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO_BRASILIA,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const obter = (tipo: string) => partes.find((p) => p.type === tipo)?.value;
+  return `${obter("year")}-${obter("month")}-${obter("day")}`;
 }
 
 export function BookingFlow({
@@ -221,6 +231,7 @@ export function BookingFlow({
                 {new Date(s.iso).toLocaleTimeString("pt-BR", {
                   hour: "2-digit",
                   minute: "2-digit",
+                  timeZone: FUSO_BRASILIA,
                 })}
               </button>
             ))}
@@ -251,6 +262,7 @@ export function BookingFlow({
               new Date(slotEscolhido.iso).toLocaleString("pt-BR", {
                 dateStyle: "short",
                 timeStyle: "short",
+                timeZone: FUSO_BRASILIA,
               })}
           </p>
 
@@ -305,6 +317,7 @@ export function BookingFlow({
               {new Date(slotEscolhido.iso).toLocaleString("pt-BR", {
                 dateStyle: "full",
                 timeStyle: "short",
+                timeZone: FUSO_BRASILIA,
               })}
             </p>
             {barbearia.endereco && (
