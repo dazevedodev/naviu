@@ -1,14 +1,17 @@
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { salvarConfigSinal } from "./actions";
+import { DadosBarbeariaForm } from "./dados-barbearia-form";
 
 export default async function ConfiguracoesPage() {
   const barbearia = await getBarbeariaAtual();
 
   return (
-    <div>
-      <h1 className="mb-6 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+    <div className="flex flex-col gap-6">
+      <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
         Configurações
       </h1>
+
+      <DadosBarbeariaForm barbearia={barbearia} />
 
       <form
         action={salvarConfigSinal}

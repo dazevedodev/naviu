@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { removerHorario } from "./actions";
 import { NovoHorarioForm } from "./novo-horario-form";
+import { AplicarPadraoForm } from "./aplicar-padrao-form";
 
 const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
@@ -40,6 +41,10 @@ export default async function HorariosBarbeiroPage({
       <h1 className="mb-6 mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
         Horários de {barbeiro.nome}
       </h1>
+
+      <div className="mb-6">
+        <AplicarPadraoForm barbeiroId={id} />
+      </div>
 
       <div className="flex flex-col gap-4">
         {DIAS.map((label, diaSemana) => {

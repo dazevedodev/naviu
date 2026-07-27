@@ -65,6 +65,8 @@ export type AgendamentoStatus =
   | "concluido"
   | "aguardando_sinal";
 
+export type FormaPagamento = "dinheiro" | "cartao" | "pix";
+
 export type Agendamento = {
   id: string;
   barbearia_id: string;
@@ -75,6 +77,7 @@ export type Agendamento = {
   status: AgendamentoStatus;
   sinal_pago: boolean;
   sinal_valor: number | null;
+  forma_pagamento: FormaPagamento | null;
   lembrete_enviado: boolean;
   criado_em: string;
 };

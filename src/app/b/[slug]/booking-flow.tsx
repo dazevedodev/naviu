@@ -288,13 +288,30 @@ export function BookingFlow({
         </form>
       )}
 
-      {passo === "confirmado" && resultado && (
-        <div className="flex flex-col items-center gap-3 text-center">
+      {passo === "confirmado" && resultado && slotEscolhido && (
+        <div className="flex flex-col items-center gap-4 text-center">
           <h2 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
             {resultado.status === "aguardando_sinal"
               ? "Quase lá!"
               : "Agendamento confirmado!"}
           </h2>
+
+          <div className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-left text-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <p className="font-medium text-zinc-950 dark:text-zinc-50">{servico?.nome}</p>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              com {barbeiros.find((b) => b.id === slotEscolhido.barbeiroId)?.nome}
+            </p>
+            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+              {new Date(slotEscolhido.iso).toLocaleString("pt-BR", {
+                dateStyle: "full",
+                timeStyle: "short",
+              })}
+            </p>
+            {barbearia.endereco && (
+              <p className="mt-2 text-zinc-600 dark:text-zinc-400">{barbearia.endereco}</p>
+            )}
+          </div>
+
           {resultado.status === "aguardando_sinal" ? (
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               Falta pagar o sinal via PIX para garantir seu horário. (Cobrança

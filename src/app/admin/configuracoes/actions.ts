@@ -4,6 +4,29 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 
+export async function salvarDadosBarbearia(formData: FormData) {
+  const barbearia = await getBarbeariaAtual();
+  const nome = String(formData.get("nome") ?? "").trim();
+  const endereco = String(formData.get("endereco") ?? "").trim();
+  const telefone_whatsapp = String(formData.get("telefone_whatsapp") ?? "").trim();
+
+  if (!nome) return { error: "Nome é obrigatório." };
+
+  const supabase = await createClient();
+  await supabase
+    .from("barbearias")
+    .update({
+      nome,
+      endereco: endereco || null,
+      telefone_whatsapp: telefone_whatsapp || null,
+    })
+    .eq("id", barbearia.id);
+
+  revalidatePath("/admin/configuracoes");
+  revalidatePath("/admin");
+  return { error: null };
+}
+
 export async function salvarConfigSinal(formData: FormData) {
   const barbearia = await getBarbeariaAtual();
   const sinal_ativo = formData.get("sinal_ativo") === "on";

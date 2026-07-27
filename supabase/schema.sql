@@ -91,6 +91,7 @@ create table agendamentos (
   -- 'pendente' | 'confirmado' | 'cancelado' | 'concluido' | 'aguardando_sinal'
   sinal_pago boolean default false,
   sinal_valor numeric,
+  forma_pagamento text, -- 'dinheiro' | 'cartao' | 'pix' | null (definido pelo barbeiro ao concluir o atendimento)
   lembrete_enviado boolean default false,
   criado_em timestamptz not null default now()
 );

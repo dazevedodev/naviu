@@ -28,3 +28,24 @@ export async function removerHorario(id: string, barbeiroId: string) {
   await supabase.from("horarios_trabalho").delete().eq("id", id);
   revalidatePath(`/admin/barbeiros/${barbeiroId}/horarios`);
 }
+
+export async function aplicarPadraoHorario(barbeiroId: string, formData: FormData) {
+  const dias = formData.getAll("dias").map(Number);
+  const hora_inicio = String(formData.get("hora_inicio") ?? "");
+  const hora_fim = String(formData.get("hora_fim") ?? "");
+
+  if (dias.length === 0) return { error: "Escolha pelo menos um dia." };
+  if (!hora_inicio || !hora_fim || hora_fim <= hora_inicio) {
+    return { error: "Horário de fim precisa ser depois do início." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("horarios_trabalho")
+    .insert(dias.map((dia_semana) => ({ barbeiro_id: barbeiroId, dia_semana, hora_inicio, hora_fim })));
+
+  if (error) return { error: "Não foi possível salvar. Tente novamente." };
+
+  revalidatePath(`/admin/barbeiros/${barbeiroId}/horarios`);
+  return { error: null };
+}
