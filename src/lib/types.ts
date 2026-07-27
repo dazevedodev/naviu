@@ -13,6 +13,8 @@ export type Barbearia = {
   sinal_tempo_expiracao_min: number;
   assinatura_status: "trial" | "ativa" | "atrasada" | "cancelada";
   assinatura_valido_ate: string | null;
+  mensagem_confirmacao: string;
+  mensagem_lembrete: string;
   criado_em: string;
 };
 

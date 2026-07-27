@@ -19,6 +19,11 @@ create table barbearias (
   sinal_tempo_expiracao_min int default 15,
   assinatura_status text not null default 'trial', -- 'trial' | 'ativa' | 'atrasada' | 'cancelada'
   assinatura_valido_ate timestamptz,
+  -- Mensagens do WhatsApp, editáveis pela barbearia (não são enviadas via API —
+  -- viram um link wa.me que o admin clica e manda manualmente). Variáveis
+  -- disponíveis: {{cliente}} {{barbearia}} {{barbeiro}} {{servico}} {{data}} {{hora}}
+  mensagem_confirmacao text not null default 'Olá {{cliente}}! Seu agendamento na {{barbearia}} foi confirmado para {{data}} às {{hora}}, com {{barbeiro}}. Até lá! 💈',
+  mensagem_lembrete text not null default 'Olá {{cliente}}! Passando pra lembrar que seu agendamento na {{barbearia}} é daqui a 1 hora, às {{hora}}, com {{barbeiro}}. Te esperamos! 💈',
   criado_em timestamptz not null default now()
 );
 

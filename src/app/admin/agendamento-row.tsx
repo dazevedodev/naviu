@@ -19,6 +19,8 @@ export function AgendamentoRow({
   servicoPreco,
   status,
   formaPagamento,
+  lembrete,
+  linkWhatsApp,
 }: {
   id: string;
   hora: string;
@@ -28,15 +30,28 @@ export function AgendamentoRow({
   servicoPreco: number;
   status: string;
   formaPagamento: FormaPagamento | null;
+  lembrete: boolean;
+  linkWhatsApp: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const finalizado = status === "cancelado" || status === "concluido";
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${
+        lembrete
+          ? "border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30"
+          : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
+      }`}
+    >
       <div>
         <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
           {hora} — {clienteNome}
+          {lembrete && (
+            <span className="ml-2 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900 dark:text-amber-200">
+              lembrete: falta 1h
+            </span>
+          )}
         </p>
         <p className="text-xs text-zinc-500">
           {clienteTelefone} · {servicoNome} ·{" "}
@@ -45,6 +60,17 @@ export function AgendamentoRow({
       </div>
 
       <div className="flex items-center gap-2">
+        {linkWhatsApp && (
+          <a
+            href={linkWhatsApp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+          >
+            WhatsApp
+          </a>
+        )}
+
         <select
           disabled={isPending}
           defaultValue={formaPagamento ?? ""}

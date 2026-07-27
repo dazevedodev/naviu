@@ -1,6 +1,7 @@
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { salvarConfigSinal } from "./actions";
 import { DadosBarbeariaForm } from "./dados-barbearia-form";
+import { MensagensWhatsAppForm } from "./mensagens-whatsapp-form";
 
 export default async function ConfiguracoesPage() {
   const barbearia = await getBarbeariaAtual();
@@ -12,6 +13,8 @@ export default async function ConfiguracoesPage() {
       </h1>
 
       <DadosBarbeariaForm barbearia={barbearia} />
+
+      <MensagensWhatsAppForm barbearia={barbearia} />
 
       <form
         action={salvarConfigSinal}

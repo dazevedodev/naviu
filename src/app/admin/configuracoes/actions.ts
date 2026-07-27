@@ -27,6 +27,26 @@ export async function salvarDadosBarbearia(formData: FormData) {
   return { error: null };
 }
 
+export async function salvarMensagensWhatsApp(formData: FormData) {
+  const barbearia = await getBarbeariaAtual();
+  const mensagem_confirmacao = String(formData.get("mensagem_confirmacao") ?? "").trim();
+  const mensagem_lembrete = String(formData.get("mensagem_lembrete") ?? "").trim();
+
+  if (!mensagem_confirmacao || !mensagem_lembrete) {
+    return { error: "As duas mensagens são obrigatórias." };
+  }
+
+  const supabase = await createClient();
+  await supabase
+    .from("barbearias")
+    .update({ mensagem_confirmacao, mensagem_lembrete })
+    .eq("id", barbearia.id);
+
+  revalidatePath("/admin/configuracoes");
+  revalidatePath("/admin");
+  return { error: null };
+}
+
 export async function salvarConfigSinal(formData: FormData) {
   const barbearia = await getBarbeariaAtual();
   const sinal_ativo = formData.get("sinal_ativo") === "on";
