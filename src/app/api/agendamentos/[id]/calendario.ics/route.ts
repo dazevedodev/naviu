@@ -1,13 +1,15 @@
 import { createEvent } from "ics";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
+  // Link público mandado por WhatsApp (sem sessão) — o UUID do agendamento
+  // já funciona como token de acesso, então usa service_role pra ler.
+  const supabase = createServiceRoleClient();
 
   const { data: agendamento } = await supabase
     .from("agendamentos")

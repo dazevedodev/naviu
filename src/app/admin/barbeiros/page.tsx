@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { desativarBarbeiro } from "./actions";
@@ -37,16 +38,24 @@ export default async function BarbeirosPage() {
             <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
               {b.nome}
             </p>
-            <form
-              action={async () => {
-                "use server";
-                await desativarBarbeiro(b.id);
-              }}
-            >
-              <button className="text-xs text-red-600 hover:underline dark:text-red-400">
-                Desativar
-              </button>
-            </form>
+            <div className="flex items-center gap-4">
+              <Link
+                href={`/admin/barbeiros/${b.id}/horarios`}
+                className="text-xs text-zinc-500 hover:underline"
+              >
+                Horários
+              </Link>
+              <form
+                action={async () => {
+                  "use server";
+                  await desativarBarbeiro(b.id);
+                }}
+              >
+                <button className="text-xs text-red-600 hover:underline dark:text-red-400">
+                  Desativar
+                </button>
+              </form>
+            </div>
           </div>
         ))}
       </div>

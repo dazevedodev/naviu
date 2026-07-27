@@ -26,9 +26,9 @@ create table barbearias (
 create table usuarios (
   id uuid primary key default gen_random_uuid(),
   barbearia_id uuid references barbearias(id) on delete cascade,
-  auth_user_id uuid references auth.users(id),
+  auth_user_id uuid unique references auth.users(id),
   nome text not null,
-  email text not null,
+  email text unique not null,
   criado_em timestamptz not null default now()
 );
 

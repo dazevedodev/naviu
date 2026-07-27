@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { gerarSlotsDisponiveis } from "@/lib/slots";
 
 export async function GET(request: NextRequest) {
@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "data inválida." }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  // Endpoint público: usa service_role porque `agendamentos` só é legível via
+  // RLS pelo dono da barbearia, e aqui precisamos ver os horários já ocupados
+  // pra qualquer visitante calcular a disponibilidade corretamente.
+  const supabase = createServiceRoleClient();
 
   const { data: servico } = await supabase
     .from("servicos")

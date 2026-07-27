@@ -14,6 +14,12 @@ export default function Home() {
         <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
           <Link
             className="flex h-12 items-center justify-center rounded-full bg-zinc-950 px-6 text-zinc-50 transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            href="/cadastro"
+          >
+            Criar conta grátis
+          </Link>
+          <Link
+            className="flex h-12 items-center justify-center rounded-full border border-zinc-300 px-6 text-zinc-950 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-900"
             href="/login"
           >
             Entrar no painel

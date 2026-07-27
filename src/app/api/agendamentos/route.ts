@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Campos obrigatórios faltando." }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  // Fluxo 100% público/anônimo: usa service_role porque as policies de RLS de
+  // `clientes`/`agendamentos` só liberam SELECT pro dono da barbearia (o
+  // cliente final nunca tem sessão), e o insert().select() precisa ler a
+  // própria linha de volta. Toda a validação de negócio já acontece abaixo.
+  const supabase = createServiceRoleClient();
 
   const { data: barbearia } = await supabase
     .from("barbearias")
