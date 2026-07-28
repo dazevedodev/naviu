@@ -12,15 +12,19 @@ export default function RedefinirSenhaPage() {
   const [error, setError] = useState<string | null>(null);
   const [linkInvalido, setLinkInvalido] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [tokenHash, setTokenHash] = useState<string | null>(null);
+  const [confirmando, setConfirmando] = useState(false);
 
   useEffect(() => {
-    // O link do e-mail de recuperação pode vir em dois formatos, dependendo
-    // de como a solicitação foi feita: "?code=..." (fluxo PKCE, usado pelo
-    // client do navegador) ou "#access_token=...&refresh_token=..." (fluxo
-    // antigo, usado por chamadas diretas à API). Processar os dois
-    // manualmente em vez de confiar em detecção automática do supabase-js,
-    // que não cobria o segundo formato e deixava a tela presa pra sempre em
-    // "Confirmando o link...".
+    // Escaneadores de segurança de e-mail (Gmail, gateways corporativos)
+    // visitam automaticamente os links dentro do e-mail antes da pessoa
+    // clicar — se o link consumisse o token sozinho ao carregar (como o
+    // "?code=..."/"#access_token=..." do Supabase fazem), o token já vinha
+    // gasto quando a pessoa clicava de verdade, e o link "expirava" quase
+    // na hora. Por isso o e-mail agora manda "?token_hash=...&type=..." (ver
+    // template em supabase/email-templates/reset-password.html) e só
+    // consumimos o token com verifyOtp() numa ação explícita de clique,
+    // nunca automaticamente no carregamento da página.
     const queryParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
 
@@ -29,6 +33,14 @@ export default function RedefinirSenhaPage() {
       return;
     }
 
+    const hash = queryParams.get("token_hash");
+    if (hash) {
+      setTokenHash(hash);
+      return;
+    }
+
+    // Formatos antigos (de e-mails já enviados antes dessa correção) —
+    // esses sim são consumidos ao carregar, não tem como evitar retroativamente.
     const supabase = createClient();
     const code = queryParams.get("code");
     const accessToken = hashParams.get("access_token");
@@ -52,12 +64,29 @@ export default function RedefinirSenhaPage() {
       return;
     }
 
-    // Nenhum dos dois formatos na URL — só resta checar se já existe uma
+    // Nenhum formato reconhecido na URL — só resta checar se já existe uma
     // sessão válida nesse navegador (ex.: usuário voltou pra essa aba).
     supabase.auth.getSession().then(({ data }) => {
       setPronto(Boolean(data.session));
     });
   }, []);
+
+  async function handleConfirmarLink() {
+    if (!tokenHash) return;
+    setConfirmando(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: "recovery",
+    });
+    setConfirmando(false);
+
+    if (error) {
+      setLinkInvalido(true);
+      return;
+    }
+    setPronto(true);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -99,6 +128,19 @@ export default function RedefinirSenhaPage() {
             <a href="/login" className="underline">Entrar</a> → &ldquo;Esqueci
             minha senha&rdquo; e clique nele assim que chegar.
           </p>
+        ) : tokenHash && !pronto ? (
+          <div>
+            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+              Clique no botão abaixo pra confirmar e definir sua nova senha.
+            </p>
+            <button
+              onClick={handleConfirmarLink}
+              disabled={confirmando}
+              className="w-full rounded-full bg-zinc-950 py-2.5 text-sm font-medium text-zinc-50 transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+            >
+              {confirmando ? "Confirmando..." : "Confirmar"}
+            </button>
+          </div>
         ) : !pronto ? (
           <p className="text-sm text-zinc-500">
             Confirmando o link... se essa mensagem não sumir, peça um link novo
