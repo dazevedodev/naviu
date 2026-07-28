@@ -14,6 +14,10 @@ const PLANOS_POR_PRODUTO: Record<string, { plano: "solo" | "barbearia"; limite_b
   // "id-do-produto-barbearia": { plano: "barbearia", limite_barbeiros: 10 },
 };
 
+// Complemento pago (R$15/mês) que libera o sinal via PIX — produto separado
+// da assinatura do plano, não mexe em `plano`/`assinatura_status`.
+const PRODUTO_ADDON_SINAL = process.env.KIWIFY_PRODUTO_ID_ADDON_SINAL;
+
 const STATUS_APROVADOS = new Set(["paid", "approved", "aprovado", "renewed"]);
 const STATUS_CANCELADOS = new Set([
   "refused",
@@ -111,15 +115,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  const produtoId = extrairProdutoId(payload);
   const update: Record<string, unknown> = {};
 
-  if (STATUS_APROVADOS.has(status)) {
+  if (produtoId && PRODUTO_ADDON_SINAL && produtoId === PRODUTO_ADDON_SINAL) {
+    // Compra do complemento do sinal — produto separado da assinatura do
+    // plano principal, então só mexe em sinal_addon_status.
+    if (STATUS_APROVADOS.has(status)) {
+      update.sinal_addon_status = "ativo";
+    } else if (STATUS_CANCELADOS.has(status)) {
+      update.sinal_addon_status = "inativo";
+      update.sinal_ativo = false; // desliga o sinal se o complemento não está mais pago
+    } else {
+      console.warn(`[kiwify webhook] status "${status}" não mapeado, ignorando.`);
+      return NextResponse.json({ ok: true });
+    }
+  } else if (STATUS_APROVADOS.has(status)) {
     update.assinatura_status = "ativa";
     const validoAte = new Date();
     validoAte.setDate(validoAte.getDate() + 30);
     update.assinatura_valido_ate = validoAte.toISOString();
 
-    const produtoId = extrairProdutoId(payload);
     const plano = produtoId ? PLANOS_POR_PRODUTO[produtoId] : null;
     if (plano) {
       update.plano = plano.plano;

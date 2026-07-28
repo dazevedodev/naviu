@@ -6,11 +6,14 @@ import { adicionarHorario } from "./actions";
 export function NovoHorarioForm({
   barbeiroId,
   diaSemana,
+  horarioFechamentoPadrao,
 }: {
   barbeiroId: string;
   diaSemana: number;
+  horarioFechamentoPadrao: string;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [definirFim, setDefinirFim] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -24,7 +27,7 @@ export function NovoHorarioForm({
           if (!result.error) formRef.current?.reset();
         })
       }
-      className="flex items-center gap-2"
+      className="flex flex-wrap items-center gap-2"
     >
       <input type="hidden" name="dia_semana" value={diaSemana} />
       <input
@@ -33,13 +36,27 @@ export function NovoHorarioForm({
         required
         className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
       />
-      <span className="text-xs text-zinc-500">até</span>
-      <input
-        type="time"
-        name="hora_fim"
-        required
-        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-      />
+
+      {definirFim ? (
+        <>
+          <span className="text-xs text-zinc-500">até</span>
+          <input
+            type="time"
+            name="hora_fim"
+            required
+            className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setDefinirFim(true)}
+          className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:hover:text-zinc-300"
+        >
+          até {horarioFechamentoPadrao.slice(0, 5)} (padrão — definir outro horário)
+        </button>
+      )}
+
       <button
         type="submit"
         disabled={isPending}

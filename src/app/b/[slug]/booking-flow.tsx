@@ -52,6 +52,25 @@ export function BookingFlow({
     [servicos, servicoId],
   );
 
+  function formatarHorarioSlot(iso: string) {
+    const inicio = new Date(iso);
+    const horaInicio = inicio.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: FUSO_BRASILIA,
+    });
+
+    if (!barbearia.mostrar_fim_servico_cliente || !servico) return horaInicio;
+
+    const fim = new Date(inicio.getTime() + servico.duracao_min * 60_000);
+    const horaFim = fim.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: FUSO_BRASILIA,
+    });
+    return `${horaInicio} - ${horaFim}`;
+  }
+
   async function buscarSlots(novaData: string, barbeiroId: string | null) {
     if (!servicoId) return;
     setCarregandoSlots(true);
@@ -146,11 +165,16 @@ export function BookingFlow({
                 setServicoId(s.id);
                 setPasso("barbeiro");
               }}
-              className="flex items-center justify-between rounded-xl border border-zinc-200 p-3 text-left text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+              className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 p-3 text-left text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
             >
-              <span>{s.nome}</span>
-              <span className="text-zinc-500">
-                {s.duracao_min} min ·{" "}
+              <span>
+                {s.nome}
+                {s.legenda && (
+                  <span className="mt-0.5 block text-xs text-zinc-500">{s.legenda}</span>
+                )}
+              </span>
+              <span className="shrink-0 text-zinc-500">
+                {s.mostrar_duracao && `${s.duracao_min} min · `}
                 {s.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </span>
             </button>
@@ -228,11 +252,7 @@ export function BookingFlow({
                 }}
                 className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
               >
-                {new Date(s.iso).toLocaleTimeString("pt-BR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: FUSO_BRASILIA,
-                })}
+                {formatarHorarioSlot(s.iso)}
               </button>
             ))}
           </div>
@@ -258,12 +278,15 @@ export function BookingFlow({
           </h2>
           <p className="text-xs text-zinc-500">
             {servico?.nome} —{" "}
-            {slotEscolhido &&
-              new Date(slotEscolhido.iso).toLocaleString("pt-BR", {
-                dateStyle: "short",
-                timeStyle: "short",
-                timeZone: FUSO_BRASILIA,
-              })}
+            {slotEscolhido && (
+              <>
+                {new Date(slotEscolhido.iso).toLocaleDateString("pt-BR", {
+                  dateStyle: "short",
+                  timeZone: FUSO_BRASILIA,
+                })}
+                , {formatarHorarioSlot(slotEscolhido.iso)}
+              </>
+            )}
           </p>
 
           <input
@@ -314,11 +337,11 @@ export function BookingFlow({
               com {barbeiros.find((b) => b.id === slotEscolhido.barbeiroId)?.nome}
             </p>
             <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-              {new Date(slotEscolhido.iso).toLocaleString("pt-BR", {
+              {new Date(slotEscolhido.iso).toLocaleDateString("pt-BR", {
                 dateStyle: "full",
-                timeStyle: "short",
                 timeZone: FUSO_BRASILIA,
-              })}
+              })}{" "}
+              às {formatarHorarioSlot(slotEscolhido.iso)}
             </p>
             {barbearia.endereco && (
               <p className="mt-2 text-zinc-600 dark:text-zinc-400">{barbearia.endereco}</p>

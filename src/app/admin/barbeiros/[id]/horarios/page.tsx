@@ -49,7 +49,10 @@ export default async function HorariosBarbeiroPage({
       </Link>
 
       <div className="mb-6">
-        <AplicarPadraoForm barbeiroId={id} />
+        <AplicarPadraoForm
+          barbeiroId={id}
+          horarioFechamentoPadrao={barbearia.horario_fechamento_padrao}
+        />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -85,7 +88,11 @@ export default async function HorariosBarbeiroPage({
                   <p className="text-sm text-zinc-400">Fechado</p>
                 )}
               </div>
-              <NovoHorarioForm barbeiroId={id} diaSemana={diaSemana} />
+              <NovoHorarioForm
+                barbeiroId={id}
+                diaSemana={diaSemana}
+                horarioFechamentoPadrao={barbearia.horario_fechamento_padrao}
+              />
             </div>
           );
         })}

@@ -39,11 +39,20 @@ export function NovoServicoForm() {
         name="preco"
         type="number"
         min={0}
-        step={0.5}
+        step="0.01"
         placeholder="Preço (R$)"
         required
         className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
       />
+      <label className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+        <input
+          type="checkbox"
+          name="mostrar_duracao"
+          defaultChecked
+          className="h-3.5 w-3.5"
+        />
+        Mostrar duração pro cliente
+      </label>
       <button
         type="submit"
         disabled={isPending}

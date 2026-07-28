@@ -11,6 +11,9 @@ export type Barbearia = {
   sinal_tipo: "fixo" | "percentual";
   sinal_valor: number;
   sinal_tempo_expiracao_min: number;
+  sinal_addon_status: "inativo" | "ativo";
+  horario_fechamento_padrao: string; // "HH:MM:SS"
+  mostrar_fim_servico_cliente: boolean;
   assinatura_status: "trial" | "ativa" | "atrasada" | "cancelada";
   assinatura_valido_ate: string | null;
   mensagem_confirmacao: string;
@@ -34,6 +37,9 @@ export type Servico = {
   duracao_min: number;
   preco: number;
   ativo: boolean;
+  mostrar_duracao: boolean;
+  legenda: string | null;
+  observacao_interna: string | null;
 };
 
 export type HorarioTrabalho = {

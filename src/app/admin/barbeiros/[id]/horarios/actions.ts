@@ -2,13 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getBarbeariaAtual } from "@/lib/current-barbearia";
 
 export async function adicionarHorario(barbeiroId: string, formData: FormData) {
   const dia_semana = Number(formData.get("dia_semana"));
   const hora_inicio = String(formData.get("hora_inicio") ?? "");
-  const hora_fim = String(formData.get("hora_fim") ?? "");
+  const hora_fim_informado = String(formData.get("hora_fim") ?? "");
 
-  if (!hora_inicio || !hora_fim || hora_fim <= hora_inicio) {
+  if (!hora_inicio) return { error: "Informe o horário de início." };
+
+  const barbearia = await getBarbeariaAtual();
+  const hora_fim = hora_fim_informado || barbearia.horario_fechamento_padrao.slice(0, 5);
+
+  if (hora_fim <= hora_inicio) {
     return { error: "Horário de fim precisa ser depois do início." };
   }
 
@@ -32,10 +38,15 @@ export async function removerHorario(id: string, barbeiroId: string) {
 export async function aplicarPadraoHorario(barbeiroId: string, formData: FormData) {
   const dias = formData.getAll("dias").map(Number);
   const hora_inicio = String(formData.get("hora_inicio") ?? "");
-  const hora_fim = String(formData.get("hora_fim") ?? "");
+  const hora_fim_informado = String(formData.get("hora_fim") ?? "");
 
   if (dias.length === 0) return { error: "Escolha pelo menos um dia." };
-  if (!hora_inicio || !hora_fim || hora_fim <= hora_inicio) {
+  if (!hora_inicio) return { error: "Informe o horário de início." };
+
+  const barbearia = await getBarbeariaAtual();
+  const hora_fim = hora_fim_informado || barbearia.horario_fechamento_padrao.slice(0, 5);
+
+  if (hora_fim <= hora_inicio) {
     return { error: "Horário de fim precisa ser depois do início." };
   }
 

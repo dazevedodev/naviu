@@ -47,6 +47,26 @@ export async function salvarMensagensWhatsApp(formData: FormData) {
   return { error: null };
 }
 
+export async function salvarConfigHorario(formData: FormData) {
+  const barbearia = await getBarbeariaAtual();
+  const horario_fechamento_padrao = String(formData.get("horario_fechamento_padrao") ?? "");
+  const mostrar_fim_servico_cliente = formData.get("mostrar_fim_servico_cliente") === "on";
+
+  if (!horario_fechamento_padrao) {
+    return { error: "Informe um horário de fechamento padrão." };
+  }
+
+  const supabase = await createClient();
+  await supabase
+    .from("barbearias")
+    .update({ horario_fechamento_padrao, mostrar_fim_servico_cliente })
+    .eq("id", barbearia.id);
+
+  revalidatePath("/admin/configuracoes");
+  revalidatePath("/admin");
+  return { error: null };
+}
+
 export async function salvarConfigSinal(formData: FormData) {
   const barbearia = await getBarbeariaAtual();
   const sinal_ativo = formData.get("sinal_ativo") === "on";
@@ -55,6 +75,14 @@ export async function salvarConfigSinal(formData: FormData) {
   const sinal_tempo_expiracao_min = Number(
     formData.get("sinal_tempo_expiracao_min") ?? 15,
   );
+
+  // Sinal é um complemento pago — não deixa ligar sem o complemento ativo,
+  // mesmo que alguém tente burlar o checkbox desabilitado na interface.
+  if (sinal_ativo && barbearia.sinal_addon_status !== "ativo") {
+    return {
+      error: "Assine o complemento do sinal (R$15/mês) antes de ativar essa opção.",
+    };
+  }
 
   const supabase = await createClient();
   await supabase
@@ -70,4 +98,5 @@ export async function salvarConfigSinal(formData: FormData) {
     .eq("id", barbearia.id);
 
   revalidatePath("/admin/configuracoes");
+  return { error: null };
 }

@@ -17,6 +17,16 @@ create table barbearias (
   sinal_tipo text default 'fixo', -- 'fixo' | 'percentual'
   sinal_valor numeric default 0,
   sinal_tempo_expiracao_min int default 15,
+  -- Sinal é um complemento pago (R$15/mês) além da assinatura do plano —
+  -- sinal_ativo só pode ser true se sinal_addon_status = 'ativo'.
+  sinal_addon_status text not null default 'inativo', -- 'inativo' | 'ativo'
+  -- Hora de trabalho: por padrão o admin só informa o início de cada dia;
+  -- o fim vira esse horário padrão, a menos que ele defina um fim manual
+  -- pra aquele dia específico (ver horarios_trabalho.hora_fim_manual).
+  horario_fechamento_padrao time not null default '18:00',
+  -- Controla se a página pública mostra só o início do horário ("09:00")
+  -- ou início e fim calculado do serviço ("09:00 - 09:30").
+  mostrar_fim_servico_cliente boolean not null default false,
   assinatura_status text not null default 'trial', -- 'trial' | 'ativa' | 'atrasada' | 'cancelada'
   assinatura_valido_ate timestamptz,
   -- Mensagens do WhatsApp, editáveis pela barbearia (não são enviadas via API —
@@ -54,7 +64,10 @@ create table servicos (
   nome text not null,
   duracao_min int not null,
   preco numeric not null,
-  ativo boolean not null default true
+  ativo boolean not null default true,
+  mostrar_duracao boolean not null default true, -- se falso, cliente só vê nome + preço
+  legenda text, -- descrição curta, pública (cliente vê)
+  observacao_interna text -- notas do admin, nunca aparece pro cliente
 );
 
 -- Horários de trabalho por barbeiro (regras recorrentes)
