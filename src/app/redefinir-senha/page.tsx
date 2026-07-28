@@ -10,9 +10,21 @@ export default function RedefinirSenhaPage() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [pronto, setPronto] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkInvalido, setLinkInvalido] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
+    // O Supabase reporta link expirado/já usado como ?error=... (ou
+    // #error=...) na própria URL de redirecionamento — sem checar isso, a
+    // tela ficava presa pra sempre em "Confirmando o link..." nesse caso.
+    const params = new URLSearchParams(
+      window.location.search || window.location.hash.replace(/^#/, ""),
+    );
+    if (params.get("error")) {
+      setLinkInvalido(true);
+      return;
+    }
+
     const supabase = createClient();
     // O link do e-mail de recuperação já vem com os tokens na URL — o
     // client detecta e estabelece a sessão automaticamente ao carregar.
@@ -63,7 +75,13 @@ export default function RedefinirSenhaPage() {
           Defina sua senha
         </h1>
 
-        {!pronto ? (
+        {linkInvalido ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Esse link expirou ou já foi usado. Peça um novo em{" "}
+            <a href="/login" className="underline">Entrar</a> → &ldquo;Esqueci
+            minha senha&rdquo; e clique nele assim que chegar.
+          </p>
+        ) : !pronto ? (
           <p className="text-sm text-zinc-500">
             Confirmando o link... se essa mensagem não sumir, peça um link novo
             em <a href="/login" className="underline">Entrar</a> → &ldquo;Esqueci
