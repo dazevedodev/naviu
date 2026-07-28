@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { montarLinkWhatsApp, preencherTemplateMensagem } from "@/lib/whatsapp";
@@ -39,9 +40,17 @@ export default async function AgendaPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
-        Agenda de hoje
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+          Agenda de hoje
+        </h1>
+        <Link
+          href="/admin/novo-agendamento"
+          className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+        >
+          + Novo agendamento
+        </Link>
+      </div>
 
       {!agendamentos?.length && (
         <p className="text-sm text-zinc-500">Nenhum agendamento para hoje.</p>

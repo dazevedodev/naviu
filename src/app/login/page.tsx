@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -11,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [linkEnviado, setLinkEnviado] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +28,19 @@ export default function LoginPage() {
 
     router.replace("/admin");
     router.refresh();
+  }
+
+  async function handleEsqueciSenha() {
+    if (!email) {
+      setError("Digite seu e-mail acima primeiro.");
+      return;
+    }
+    setError(null);
+    const supabase = createClient();
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    setLinkEnviado(true);
   }
 
   return (
@@ -59,9 +72,22 @@ export default function LoginPage() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-6 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="mb-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
         />
 
+        <button
+          type="button"
+          onClick={handleEsqueciSenha}
+          className="mb-4 text-xs text-zinc-500 hover:underline"
+        >
+          Esqueci minha senha
+        </button>
+
+        {linkEnviado && (
+          <p className="mb-4 text-sm text-green-700 dark:text-green-400">
+            Te mandamos um e-mail com o link pra criar uma senha nova.
+          </p>
+        )}
         {error && (
           <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
@@ -73,13 +99,6 @@ export default function LoginPage() {
         >
           {loading ? "Entrando..." : "Entrar"}
         </button>
-
-        <p className="mt-4 text-center text-sm text-zinc-500">
-          Ainda não tem conta?{" "}
-          <Link href="/cadastro" className="font-medium text-zinc-950 underline dark:text-zinc-50">
-            Criar grátis
-          </Link>
-        </p>
       </form>
     </div>
   );
