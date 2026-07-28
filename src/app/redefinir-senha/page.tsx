@@ -26,8 +26,23 @@ export default function RedefinirSenhaPage() {
     }
 
     const supabase = createClient();
-    // O link do e-mail de recuperação já vem com os tokens na URL — o
-    // client detecta e estabelece a sessão automaticamente ao carregar.
+
+    // createBrowserClient (@supabase/ssr) usa o fluxo PKCE por padrão — o
+    // link do e-mail vem com "?code=..." em vez do token na hash da URL, e
+    // precisa trocar esse code por sessão explicitamente. Sem isso, o
+    // onAuthStateChange/getSession abaixo nunca dispara e a tela fica presa
+    // pra sempre em "Confirmando o link...", mesmo com um link válido.
+    const code = params.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) setLinkInvalido(true);
+        else setPronto(true);
+      });
+      return;
+    }
+
+    // Fallback pro formato antigo (token na hash), caso o Supabase alguma
+    // hora mande o link nesse formato.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
