@@ -37,10 +37,20 @@ export default function LoginPage() {
       return;
     }
     setError(null);
+    setLinkEnviado(false);
     const supabase = createClient();
-    await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/redefinir-senha`,
     });
+
+    // O Supabase não erra por "e-mail não existe" (evita confirmar pra quem
+    // está tentando adivinhar contas) — um erro aqui é falha real de envio
+    // (SMTP fora do ar, limite de taxa, etc.), por isso é seguro mostrar.
+    if (error) {
+      setError("Não foi possível enviar o e-mail agora. Tente novamente em instantes.");
+      return;
+    }
+
     setLinkEnviado(true);
   }
 
