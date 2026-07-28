@@ -6,6 +6,7 @@ const NAV = [
   { href: "/admin", label: "Agenda" },
   { href: "/admin/barbeiros", label: "Barbeiros" },
   { href: "/admin/servicos", label: "Serviços" },
+  { href: "/admin/compartilhar", label: "Compartilhar" },
   { href: "/admin/configuracoes", label: "Configurações" },
 ];
 
@@ -24,7 +25,7 @@ export default async function AdminLayout({
             {barbearia.nome}
           </p>
           <p className="text-xs text-zinc-500">
-            naviu.com.br/b/{barbearia.slug}
+            naviu.app.br/b/{barbearia.slug}
           </p>
         </div>
         <LogoutButton />

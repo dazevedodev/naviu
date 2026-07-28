@@ -29,14 +29,18 @@ export function BookingFlow({
   barbearia,
   barbeiros,
   servicos,
+  barbeiroPreSelecionado,
 }: {
   barbearia: Barbearia;
   barbeiros: Barbeiro[];
   servicos: Servico[];
+  barbeiroPreSelecionado?: Barbeiro;
 }) {
   const [passo, setPasso] = useState<Passo>("servico");
   const [servicoId, setServicoId] = useState<string | null>(null);
-  const [barbeiroSelecionado, setBarbeiroSelecionado] = useState<string | null>(null);
+  const [barbeiroSelecionado, setBarbeiroSelecionado] = useState<string | null>(
+    barbeiroPreSelecionado?.id ?? null,
+  );
   const [data, setData] = useState(hojeISO());
   const [slots, setSlots] = useState<SlotComBarbeiro[]>([]);
   const [carregandoSlots, setCarregandoSlots] = useState(false);
@@ -71,8 +75,13 @@ export function BookingFlow({
     return `${horaInicio} - ${horaFim}`;
   }
 
-  async function buscarSlots(novaData: string, barbeiroId: string | null) {
-    if (!servicoId) return;
+  async function buscarSlots(
+    novaData: string,
+    barbeiroId: string | null,
+    servicoIdOverride?: string,
+  ) {
+    const servicoIdAtual = servicoIdOverride ?? servicoId;
+    if (!servicoIdAtual) return;
     setCarregandoSlots(true);
     setErro(null);
 
@@ -85,7 +94,7 @@ export function BookingFlow({
       const respostas = await Promise.all(
         candidatos.map(async (bId) => {
           const res = await fetch(
-            `/api/disponibilidade?barbeiro_id=${bId}&servico_id=${servicoId}&data=${novaData}`,
+            `/api/disponibilidade?barbeiro_id=${bId}&servico_id=${servicoIdAtual}&data=${novaData}`,
           );
           const json = await res.json();
           return (json.slots as string[]).map((iso) => ({ iso, barbeiroId: bId }));
@@ -155,6 +164,11 @@ export function BookingFlow({
     <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
       {passo === "servico" && (
         <div className="flex flex-col gap-2">
+          {barbeiroPreSelecionado && (
+            <p className="mb-1 text-xs text-zinc-500">
+              Agendando com <strong>{barbeiroPreSelecionado.nome}</strong>
+            </p>
+          )}
           <h2 className="mb-2 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
             Escolha o serviço
           </h2>
@@ -163,7 +177,12 @@ export function BookingFlow({
               key={s.id}
               onClick={() => {
                 setServicoId(s.id);
-                setPasso("barbeiro");
+                if (barbeiroPreSelecionado) {
+                  setPasso("data");
+                  buscarSlots(data, barbeiroPreSelecionado.id, s.id);
+                } else {
+                  setPasso("barbeiro");
+                }
               }}
               className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 p-3 text-left text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
             >
@@ -257,7 +276,7 @@ export function BookingFlow({
             ))}
           </div>
           <button
-            onClick={() => setPasso("barbeiro")}
+            onClick={() => setPasso(barbeiroPreSelecionado ? "servico" : "barbeiro")}
             className="mt-2 text-left text-xs text-zinc-500 hover:underline"
           >
             ← Voltar

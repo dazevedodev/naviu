@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { buscarDadosBarbearia } from "./dados";
 import { BookingFlow } from "./booking-flow";
 
 export default async function BarbeariaPublicaPage({
@@ -8,30 +8,10 @@ export default async function BarbeariaPublicaPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const dados = await buscarDadosBarbearia(slug);
 
-  const { data: barbearia } = await supabase
-    .from("barbearias")
-    .select("*")
-    .eq("slug", slug)
-    .single();
-
-  if (!barbearia) notFound();
-
-  const [{ data: barbeiros }, { data: servicos }] = await Promise.all([
-    supabase
-      .from("barbeiros")
-      .select("*")
-      .eq("barbearia_id", barbearia.id)
-      .eq("ativo", true)
-      .order("nome"),
-    supabase
-      .from("servicos")
-      .select("*")
-      .eq("barbearia_id", barbearia.id)
-      .eq("ativo", true)
-      .order("nome"),
-  ]);
+  if (!dados) notFound();
+  const { barbearia, barbeiros, servicos } = dados;
 
   return (
     <div className="flex flex-1 flex-col items-center bg-zinc-50 px-4 py-10 dark:bg-black">
@@ -45,11 +25,7 @@ export default async function BarbeariaPublicaPage({
           )}
         </header>
 
-        <BookingFlow
-          barbearia={barbearia}
-          barbeiros={barbeiros ?? []}
-          servicos={servicos ?? []}
-        />
+        <BookingFlow barbearia={barbearia} barbeiros={barbeiros} servicos={servicos} />
       </div>
     </div>
   );
