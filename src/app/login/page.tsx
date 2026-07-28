@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -49,6 +50,13 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
       >
+        <Link
+          href="/"
+          className="mb-4 inline-block text-sm text-zinc-500 hover:underline"
+        >
+          ← Voltar
+        </Link>
+
         <h1 className="mb-6 text-xl font-semibold text-zinc-950 dark:text-zinc-50">
           Entrar no Naviu
         </h1>
