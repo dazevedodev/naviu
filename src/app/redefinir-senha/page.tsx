@@ -14,25 +14,26 @@ export default function RedefinirSenhaPage() {
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    // O Supabase reporta link expirado/já usado como ?error=... (ou
-    // #error=...) na própria URL de redirecionamento — sem checar isso, a
-    // tela ficava presa pra sempre em "Confirmando o link..." nesse caso.
-    const params = new URLSearchParams(
-      window.location.search || window.location.hash.replace(/^#/, ""),
-    );
-    if (params.get("error")) {
+    // O link do e-mail de recuperação pode vir em dois formatos, dependendo
+    // de como a solicitação foi feita: "?code=..." (fluxo PKCE, usado pelo
+    // client do navegador) ou "#access_token=...&refresh_token=..." (fluxo
+    // antigo, usado por chamadas diretas à API). Processar os dois
+    // manualmente em vez de confiar em detecção automática do supabase-js,
+    // que não cobria o segundo formato e deixava a tela presa pra sempre em
+    // "Confirmando o link...".
+    const queryParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+    if (queryParams.get("error") || hashParams.get("error")) {
       setLinkInvalido(true);
       return;
     }
 
     const supabase = createClient();
+    const code = queryParams.get("code");
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
 
-    // createBrowserClient (@supabase/ssr) usa o fluxo PKCE por padrão — o
-    // link do e-mail vem com "?code=..." em vez do token na hash da URL, e
-    // precisa trocar esse code por sessão explicitamente. Sem isso, o
-    // onAuthStateChange/getSession abaixo nunca dispara e a tela fica presa
-    // pra sempre em "Confirmando o link...", mesmo com um link válido.
-    const code = params.get("code");
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (error) setLinkInvalido(true);
@@ -41,19 +42,21 @@ export default function RedefinirSenhaPage() {
       return;
     }
 
-    // Fallback pro formato antigo (token na hash), caso o Supabase alguma
-    // hora mande o link nesse formato.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setPronto(true);
-    });
+    if (accessToken && refreshToken) {
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (error) setLinkInvalido(true);
+          else setPronto(true);
+        });
+      return;
+    }
 
+    // Nenhum dos dois formatos na URL — só resta checar se já existe uma
+    // sessão válida nesse navegador (ex.: usuário voltou pra essa aba).
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setPronto(true);
+      setPronto(Boolean(data.session));
     });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
