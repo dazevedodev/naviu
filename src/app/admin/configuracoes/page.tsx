@@ -1,6 +1,5 @@
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { DadosBarbeariaForm } from "./dados-barbearia-form";
-import { MensagensWhatsAppForm } from "./mensagens-whatsapp-form";
 import { ConfigHorarioForm } from "./config-horario-form";
 import { ConfigSinalForm } from "./config-sinal-form";
 
@@ -16,8 +15,6 @@ export default async function ConfiguracoesPage() {
       <DadosBarbeariaForm barbearia={barbearia} />
 
       <ConfigHorarioForm barbearia={barbearia} />
-
-      <MensagensWhatsAppForm barbearia={barbearia} />
 
       <ConfigSinalForm barbearia={barbearia} />
     </div>

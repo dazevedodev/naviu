@@ -1,7 +1,7 @@
-import { timingSafeEqual } from "crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { gerarSlugUnico } from "@/lib/slug";
+import { tokenDaQueryValido } from "@/lib/verificar-token";
 
 // A doc pública da Kiwify não detalha o payload exato do evento de compra —
 // só confirma que cada webhook carrega um `token` na querystring e o envelope
@@ -29,17 +29,6 @@ const STATUS_CANCELADOS = new Set([
   "chargedback",
   "chargeback",
 ]);
-
-function tokenValido(request: NextRequest): boolean {
-  const esperado = process.env.KIWIFY_WEBHOOK_TOKEN;
-  const recebido = request.nextUrl.searchParams.get("token");
-  if (!esperado || !recebido) return false;
-
-  const bufEsperado = Buffer.from(esperado);
-  const bufRecebido = Buffer.from(recebido);
-  if (bufEsperado.length !== bufRecebido.length) return false;
-  return timingSafeEqual(bufEsperado, bufRecebido);
-}
 
 // Acessa um caminho tipo "Customer.email" num objeto de formato desconhecido,
 // sem recorrer a `any`.
@@ -179,7 +168,7 @@ async function criarContaAutomaticamente(
 }
 
 export async function POST(request: NextRequest) {
-  if (!tokenValido(request)) {
+  if (!tokenDaQueryValido(request, "KIWIFY_WEBHOOK_TOKEN")) {
     return NextResponse.json({ error: "Token inválido." }, { status: 401 });
   }
 

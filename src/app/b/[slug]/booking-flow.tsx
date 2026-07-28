@@ -47,6 +47,7 @@ export function BookingFlow({
   const [slotEscolhido, setSlotEscolhido] = useState<SlotComBarbeiro | null>(null);
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [resultado, setResultado] = useState<{ id: string; status: string } | null>(null);
@@ -118,7 +119,7 @@ export function BookingFlow({
   }
 
   async function confirmarAgendamento() {
-    if (!servicoId || !slotEscolhido || !nome || !whatsapp) return;
+    if (!servicoId || !slotEscolhido || !nome || !whatsapp || !email) return;
     setEnviando(true);
     setErro(null);
 
@@ -133,6 +134,7 @@ export function BookingFlow({
           data_hora: slotEscolhido.iso,
           nome,
           telefone_whatsapp: whatsapp,
+          email,
         }),
       });
       const json = await res.json();
@@ -322,6 +324,14 @@ export function BookingFlow({
             onChange={(e) => setWhatsapp(e.target.value)}
             className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           />
+          <input
+            required
+            type="email"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          />
 
           {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
 
@@ -374,7 +384,8 @@ export function BookingFlow({
             </p>
           ) : (
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Te esperamos! Você vai receber a confirmação pelo WhatsApp.
+              Te esperamos! Enviamos a confirmação e as instruções de
+              cancelamento pro seu e-mail.
             </p>
           )}
           <a

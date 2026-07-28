@@ -1,9 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { enviarEmailConfirmacaoCliente, enviarEmailNotificacaoAdmin } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { barbearia_id, barbeiro_id, servico_id, data_hora, nome, telefone_whatsapp } = body;
+  const {
+    barbearia_id,
+    barbeiro_id,
+    servico_id,
+    data_hora,
+    nome,
+    telefone_whatsapp,
+    email,
+    origem, // "publico" (padrão, cliente pela página pública) | "manual" (admin criou)
+  } = body;
 
   if (
     !barbearia_id ||
@@ -24,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   const { data: barbearia } = await supabase
     .from("barbearias")
-    .select("sinal_ativo, sinal_tipo, sinal_valor")
+    .select("nome, endereco, sinal_ativo, sinal_tipo, sinal_valor")
     .eq("id", barbearia_id)
     .single();
 
@@ -34,13 +44,19 @@ export async function POST(request: NextRequest) {
 
   const { data: servico } = await supabase
     .from("servicos")
-    .select("duracao_min, preco")
+    .select("nome, duracao_min, preco")
     .eq("id", servico_id)
     .single();
 
   if (!servico) {
     return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
   }
+
+  const { data: barbeiro } = await supabase
+    .from("barbeiros")
+    .select("nome")
+    .eq("id", barbeiro_id)
+    .single();
 
   // Revalida conflito no momento da escrita (checagem best-effort — não é
   // atômica, mas cobre o caso comum de dois clientes disputando o mesmo horário).
@@ -71,7 +87,7 @@ export async function POST(request: NextRequest) {
 
   const { data: cliente, error: erroCliente } = await supabase
     .from("clientes")
-    .insert({ nome, telefone_whatsapp })
+    .insert({ nome, telefone_whatsapp, email: email || null })
     .select("id")
     .single();
 
@@ -96,7 +112,7 @@ export async function POST(request: NextRequest) {
       status: barbearia.sinal_ativo ? "aguardando_sinal" : "confirmado",
       sinal_valor: sinalValor,
     })
-    .select("id, status")
+    .select("id, status, cancelamento_token")
     .single();
 
   if (erroAgendamento || !agendamento) {
@@ -109,7 +125,34 @@ export async function POST(request: NextRequest) {
   // TODO: se sinal_ativo, gerar cobrança PIX (Pagar.me/Mercado Pago) e devolver
   // o QR code aqui; um job separado deve expirar o agendamento se o sinal não
   // for pago dentro de sinal_tempo_expiracao_min.
-  // TODO: disparar confirmação via WhatsApp Cloud API com o link do .ics.
+
+  const detalhesEmail = {
+    barbeariaNome: barbearia.nome,
+    barbeariaEndereco: barbearia.endereco,
+    barbeiroNome: barbeiro?.nome ?? "",
+    servicoNome: servico.nome,
+    dataHora: inicio,
+    cancelamentoToken: agendamento.cancelamento_token,
+  };
+
+  if (email) {
+    await enviarEmailConfirmacaoCliente(email, detalhesEmail);
+  }
+
+  // Agendamento criado pelo próprio admin (atendimento por telefone/presencial)
+  // não precisa notificar o admin de algo que ele mesmo acabou de fazer.
+  if (origem !== "manual") {
+    const { data: usuario } = await supabase
+      .from("usuarios")
+      .select("email")
+      .eq("barbearia_id", barbearia_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (usuario?.email) {
+      await enviarEmailNotificacaoAdmin(usuario.email, { ...detalhesEmail, clienteNome: nome });
+    }
+  }
 
   return NextResponse.json({ id: agendamento.id, status: agendamento.status });
 }

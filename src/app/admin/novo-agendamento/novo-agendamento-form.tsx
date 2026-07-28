@@ -28,6 +28,7 @@ export function NovoAgendamentoForm({
   const [carregandoSlots, setCarregandoSlots] = useState(false);
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
@@ -67,6 +68,8 @@ export function NovoAgendamentoForm({
           data_hora: horarioIso,
           nome,
           telefone_whatsapp: whatsapp,
+          email: email || undefined,
+          origem: "manual",
         }),
       });
       const json = await res.json();
@@ -210,6 +213,13 @@ export function NovoAgendamentoForm({
           placeholder="WhatsApp (com DDD)"
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
+          className="mb-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        />
+        <input
+          type="email"
+          placeholder="E-mail (opcional, pra mandar confirmação)"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
         />
       </div>

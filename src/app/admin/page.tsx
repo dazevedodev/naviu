@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
-import { montarLinkWhatsApp, preencherTemplateMensagem } from "@/lib/whatsapp";
-import { formatarDataBrasilia, formatarHoraBrasilia, horarioBrasilia, hojeISOBrasilia } from "@/lib/timezone";
+import { formatarHoraBrasilia, horarioBrasilia, hojeISOBrasilia } from "@/lib/timezone";
 import { AgendamentoRow } from "./agendamento-row";
 import type { FormaPagamento } from "@/lib/types";
 
@@ -12,13 +11,10 @@ function inicioFimDoDia() {
   return { inicio: inicio.toISOString(), fim: fim.toISOString() };
 }
 
-const UMA_HORA_MS = 60 * 60_000;
-
 export default async function AgendaPage() {
   const barbearia = await getBarbeariaAtual();
   const supabase = await createClient();
   const { inicio, fim } = inicioFimDoDia();
-  const agora = new Date();
 
   const [{ data: agendamentos }, { data: barbeiros }] = await Promise.all([
     supabase
@@ -75,41 +71,17 @@ export default async function AgendaPage() {
                   const servico = a.servicos as unknown as { nome: string; preco: number };
                   const dataHora = new Date(a.data_hora);
 
-                  const emAndamentoOuFuturo = a.status !== "cancelado" && a.status !== "concluido";
-                  const faltaUmaHoraOuMenos =
-                    dataHora.getTime() - agora.getTime() <= UMA_HORA_MS &&
-                    dataHora.getTime() > agora.getTime();
-                  const lembrete = emAndamentoOuFuturo && faltaUmaHoraOuMenos;
-
-                  const variaveis = {
-                    cliente: cliente?.nome ?? "",
-                    barbearia: barbearia.nome,
-                    barbeiro: b.nome,
-                    servico: servico?.nome ?? "",
-                    data: formatarDataBrasilia(dataHora),
-                    hora: formatarHoraBrasilia(dataHora),
-                  };
-                  const mensagem = preencherTemplateMensagem(
-                    lembrete ? barbearia.mensagem_lembrete : barbearia.mensagem_confirmacao,
-                    variaveis,
-                  );
-                  const linkWhatsApp = cliente?.telefone_whatsapp
-                    ? montarLinkWhatsApp(cliente.telefone_whatsapp, mensagem)
-                    : null;
-
                   return (
                     <AgendamentoRow
                       key={a.id}
                       id={a.id}
-                      hora={variaveis.hora}
+                      hora={formatarHoraBrasilia(dataHora)}
                       clienteNome={cliente?.nome ?? ""}
                       clienteTelefone={cliente?.telefone_whatsapp ?? ""}
                       servicoNome={servico?.nome ?? ""}
                       servicoPreco={servico?.preco ?? 0}
                       status={a.status}
                       formaPagamento={a.forma_pagamento as FormaPagamento | null}
-                      lembrete={lembrete}
-                      linkWhatsApp={linkWhatsApp}
                     />
                   );
                 })}

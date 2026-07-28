@@ -16,8 +16,6 @@ export type Barbearia = {
   mostrar_fim_servico_cliente: boolean;
   assinatura_status: "trial" | "ativa" | "atrasada" | "cancelada";
   assinatura_valido_ate: string | null;
-  mensagem_confirmacao: string;
-  mensagem_lembrete: string;
   criado_em: string;
 };
 
@@ -63,6 +61,7 @@ export type Cliente = {
   id: string;
   nome: string;
   telefone_whatsapp: string;
+  email: string | null;
   criado_em: string;
 };
 
@@ -87,5 +86,6 @@ export type Agendamento = {
   sinal_valor: number | null;
   forma_pagamento: FormaPagamento | null;
   lembrete_enviado: boolean;
+  cancelamento_token: string;
   criado_em: string;
 };
