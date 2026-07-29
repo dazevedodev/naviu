@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   const { data: barbearia } = await supabase
     .from("barbearias")
-    .select("nome, endereco, sinal_ativo, sinal_tipo, sinal_valor")
+    .select("nome, endereco")
     .eq("id", barbearia_id)
     .single();
 
@@ -95,12 +95,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Não foi possível salvar o cliente." }, { status: 500 });
   }
 
-  const sinalValor = barbearia.sinal_ativo
-    ? barbearia.sinal_tipo === "percentual"
-      ? Number(((servico.preco * barbearia.sinal_valor) / 100).toFixed(2))
-      : barbearia.sinal_valor
-    : null;
-
   const { data: agendamento, error: erroAgendamento } = await supabase
     .from("agendamentos")
     .insert({
@@ -109,8 +103,7 @@ export async function POST(request: NextRequest) {
       servico_id,
       cliente_id: cliente.id,
       data_hora,
-      status: barbearia.sinal_ativo ? "aguardando_sinal" : "confirmado",
-      sinal_valor: sinalValor,
+      status: "confirmado",
     })
     .select("id, status, cancelamento_token")
     .single();
@@ -121,10 +114,6 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-
-  // TODO: se sinal_ativo, gerar cobrança PIX (Pagar.me/Mercado Pago) e devolver
-  // o QR code aqui; um job separado deve expirar o agendamento se o sinal não
-  // for pago dentro de sinal_tempo_expiracao_min.
 
   const detalhesEmail = {
     barbeariaNome: barbearia.nome,

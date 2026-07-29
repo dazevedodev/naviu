@@ -46,37 +46,3 @@ export async function salvarConfigHorario(formData: FormData) {
   revalidatePath("/admin");
   return { error: null };
 }
-
-export async function salvarConfigSinal(formData: FormData) {
-  const barbearia = await getBarbeariaAtual();
-  const sinal_ativo = formData.get("sinal_ativo") === "on";
-  const sinal_tipo = String(formData.get("sinal_tipo") ?? "fixo");
-  const sinal_valor = Number(formData.get("sinal_valor") ?? 0);
-  const sinal_tempo_expiracao_min = Number(
-    formData.get("sinal_tempo_expiracao_min") ?? 15,
-  );
-
-  // Sinal é um complemento pago — não deixa ligar sem o complemento ativo,
-  // mesmo que alguém tente burlar o checkbox desabilitado na interface.
-  if (sinal_ativo && barbearia.sinal_addon_status !== "ativo") {
-    return {
-      error: "Assine o complemento do sinal (R$5,99/mês) antes de ativar essa opção.",
-    };
-  }
-
-  const supabase = await createClient();
-  await supabase
-    .from("barbearias")
-    .update({
-      sinal_ativo,
-      sinal_tipo,
-      sinal_valor: Number.isFinite(sinal_valor) ? sinal_valor : 0,
-      sinal_tempo_expiracao_min: Number.isFinite(sinal_tempo_expiracao_min)
-        ? sinal_tempo_expiracao_min
-        : 15,
-    })
-    .eq("id", barbearia.id);
-
-  revalidatePath("/admin/configuracoes");
-  return { error: null };
-}

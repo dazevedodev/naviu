@@ -8,11 +8,6 @@ export type Barbearia = {
   tema: { cor_primaria?: string };
   plano: "solo" | "barbearia";
   limite_barbeiros: number;
-  sinal_ativo: boolean;
-  sinal_tipo: "fixo" | "percentual";
-  sinal_valor: number;
-  sinal_tempo_expiracao_min: number;
-  sinal_addon_status: "inativo" | "ativo";
   horario_fechamento_padrao: string; // "HH:MM:SS"
   mostrar_fim_servico_cliente: boolean;
   assinatura_status: "trial" | "ativa" | "atrasada" | "cancelada";
@@ -67,12 +62,7 @@ export type Cliente = {
   criado_em: string;
 };
 
-export type AgendamentoStatus =
-  | "pendente"
-  | "confirmado"
-  | "cancelado"
-  | "concluido"
-  | "aguardando_sinal";
+export type AgendamentoStatus = "pendente" | "confirmado" | "cancelado" | "concluido";
 
 export type FormaPagamento = "dinheiro" | "cartao" | "pix";
 
@@ -84,8 +74,6 @@ export type Agendamento = {
   cliente_id: string;
   data_hora: string; // ISO
   status: AgendamentoStatus;
-  sinal_pago: boolean;
-  sinal_valor: number | null;
   forma_pagamento: FormaPagamento | null;
   lembrete_enviado: boolean;
   cancelamento_token: string;

@@ -9,14 +9,9 @@ const FUNCIONALIDADES = [
       "Seu cliente escolhe barbeiro, serviço e horário sozinho, sem precisar te chamar no WhatsApp pra saber se tem vaga.",
   },
   {
-    titulo: "Lembrete pronto pro WhatsApp",
+    titulo: "Confirmação e lembrete automáticos",
     descricao:
-      "Confirmação e lembrete de 1h antes já vêm com a mensagem pronta — você só clica e manda, sem depender de nenhuma API.",
-  },
-  {
-    titulo: "Sinal via PIX (opcional)",
-    descricao:
-      "Ative a cobrança de sinal antecipado pra reduzir falta em horário marcado.",
+      "O cliente recebe confirmação por e-mail na hora e um lembrete automático 1h antes — sem você precisar fazer nada.",
   },
   {
     titulo: "Cada barbeiro com seu link",

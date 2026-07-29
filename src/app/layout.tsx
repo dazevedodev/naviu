@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Naviu — Agendamento para barbearias",
   description:
-    "Agendamento online para barbearias, com lembrete no WhatsApp e sinal via PIX.",
+    "Agendamento online para barbearias, com confirmação e lembrete automáticos por e-mail.",
 };
 
 export default function RootLayout({

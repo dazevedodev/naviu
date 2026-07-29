@@ -15,9 +15,8 @@ const PLANOS: Plano[] = [
     recursos: [
       "1 barbeiro",
       "Link público de agendamento (ex: naviu.app.br/b/sua-barbearia)",
-      "Confirmação e lembrete prontos pra mandar no WhatsApp",
+      "Confirmação e lembrete automáticos por e-mail",
       "Cliente adiciona o horário na agenda dele com 1 toque",
-      "Sinal via PIX disponível como complemento (+R$5,99/mês)",
     ],
     checkoutUrl: process.env.NEXT_PUBLIC_KIWIFY_CHECKOUT_URL_SOLO,
   },

@@ -15,10 +15,6 @@ import { tokenDaQueryValido } from "@/lib/verificar-token";
 const PRODUTO_ID_SOLO = process.env.KIWIFY_PRODUTO_ID_PLANO_SOLO;
 const PRODUTO_ID_BARBEARIA = process.env.KIWIFY_PRODUTO_ID_PLANO_BARBEARIA;
 
-// Complemento pago (R$5,99/mês) que libera o sinal via PIX — produto separado
-// da assinatura do plano, não mexe em `plano`/`assinatura_status`.
-const PRODUTO_ADDON_SINAL = process.env.KIWIFY_PRODUTO_ID_ADDON_SINAL;
-
 const STATUS_APROVADOS = new Set(["paid", "approved", "aprovado", "renewed"]);
 const STATUS_CANCELADOS = new Set([
   "refused",
@@ -186,15 +182,12 @@ export async function POST(request: NextRequest) {
   const supabase = createServiceRoleClient();
   const produtoId = extrairProdutoId(payload);
 
-  const ehProdutoAddon = Boolean(
-    produtoId && PRODUTO_ADDON_SINAL && produtoId === PRODUTO_ADDON_SINAL,
-  );
   const ehProdutoPlano = Boolean(planoPorProdutoId(produtoId));
-  const ehProdutoDesconhecido = Boolean(produtoId && !ehProdutoAddon && !ehProdutoPlano);
+  const ehProdutoDesconhecido = Boolean(produtoId && !ehProdutoPlano);
 
   if (ehProdutoDesconhecido) {
-    // product_id de algo que não reconhecemos (nem addon, nem plano
-    // principal) — não mexe em nada pra não arriscar liberar acesso à toa.
+    // product_id de algo que não reconhecemos — não mexe em nada pra não
+    // arriscar liberar acesso à toa.
     console.warn(`[kiwify webhook] product_id "${produtoId}" não reconhecido, ignorando.`);
     return NextResponse.json({ ok: true });
   }
@@ -208,13 +201,6 @@ export async function POST(request: NextRequest) {
   let barbeariaId = usuarioExistente?.barbearia_id as string | undefined;
 
   if (!barbeariaId) {
-    if (ehProdutoAddon) {
-      // O complemento do sinal só aparece dentro do painel de uma conta já
-      // existente — se não achou usuário, não tem o que fazer aqui.
-      console.warn(`[kiwify webhook] nenhum usuário encontrado para ${email} (complemento do sinal).`);
-      return NextResponse.json({ ok: true });
-    }
-
     if (!STATUS_APROVADOS.has(status)) {
       // não cria conta nova por causa de um evento de cancelamento/recusa
       // pra um e-mail que a gente nem conhece.
@@ -229,19 +215,7 @@ export async function POST(request: NextRequest) {
 
   const update: Record<string, unknown> = {};
 
-  if (ehProdutoAddon) {
-    // Compra do complemento do sinal — produto separado da assinatura do
-    // plano principal, então só mexe em sinal_addon_status.
-    if (STATUS_APROVADOS.has(status)) {
-      update.sinal_addon_status = "ativo";
-    } else if (STATUS_CANCELADOS.has(status)) {
-      update.sinal_addon_status = "inativo";
-      update.sinal_ativo = false; // desliga o sinal se o complemento não está mais pago
-    } else {
-      console.warn(`[kiwify webhook] status "${status}" não mapeado, ignorando.`);
-      return NextResponse.json({ ok: true });
-    }
-  } else if (STATUS_APROVADOS.has(status)) {
+  if (STATUS_APROVADOS.has(status)) {
     update.assinatura_status = "ativa";
     const validoAte = new Date();
     validoAte.setDate(validoAte.getDate() + 30);
