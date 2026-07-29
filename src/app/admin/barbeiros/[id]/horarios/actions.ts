@@ -6,17 +6,24 @@ import { getBarbeariaAtual } from "@/lib/current-barbearia";
 
 const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
+export type ModoHorario = "automatico" | "manual";
+
 export type DiaHorario = {
   dia_semana: number;
   aberto: boolean;
+  modo: ModoHorario;
   hora_inicio: string;
   hora_fim: string;
+  intervalo_min: number;
+  pausa_inicio: string;
+  pausa_fim: string;
+  horarios_manuais: string[];
 };
 
 // Substitui a semana inteira de uma vez — mais simples e menos propenso a
 // erro do que ficar somando/removendo horário por horário. Cada dia tem no
-// máximo um intervalo (nenhum barbeiro real usava mais de um por dia, e
-// isso simplificava bastante a tela).
+// máximo uma configuração (automática ou manual); a pausa cobre o caso de
+// precisar de um intervalo no meio do dia sem precisar de várias janelas.
 export async function salvarHorariosSemana(barbeiroId: string, dias: DiaHorario[]) {
   const barbearia = await getBarbeariaAtual();
   const supabase = await createClient();
@@ -31,8 +38,13 @@ export async function salvarHorariosSemana(barbeiroId: string, dias: DiaHorario[
   if (!barbeiro) return { error: "Barbeiro não encontrado." };
 
   for (const d of dias) {
-    if (d.aberto && (!d.hora_inicio || !d.hora_fim || d.hora_fim <= d.hora_inicio)) {
-      return { error: `Horário inválido em ${DIAS[d.dia_semana]}.` };
+    if (!d.aberto) continue;
+    if (d.modo === "automatico") {
+      if (!d.hora_inicio || !d.hora_fim || d.hora_fim <= d.hora_inicio) {
+        return { error: `Horário inválido em ${DIAS[d.dia_semana]}.` };
+      }
+    } else if (d.horarios_manuais.length === 0) {
+      return { error: `Adicione pelo menos um horário em ${DIAS[d.dia_semana]}.` };
     }
   }
 
@@ -45,12 +57,25 @@ export async function salvarHorariosSemana(barbeiroId: string, dias: DiaHorario[
 
   const linhas = dias
     .filter((d) => d.aberto)
-    .map((d) => ({
-      barbeiro_id: barbeiroId,
-      dia_semana: d.dia_semana,
-      hora_inicio: d.hora_inicio,
-      hora_fim: d.hora_fim,
-    }));
+    .map((d) => {
+      // Pausa só é salva se início e fim foram preenchidos — deixar só um
+      // dos dois em branco não trava o salvamento, só ignora a pausa.
+      const pausaValida = Boolean(
+        d.modo === "automatico" && d.pausa_inicio && d.pausa_fim && d.pausa_fim > d.pausa_inicio,
+      );
+
+      return {
+        barbeiro_id: barbeiroId,
+        dia_semana: d.dia_semana,
+        modo: d.modo,
+        hora_inicio: d.modo === "automatico" ? d.hora_inicio : null,
+        hora_fim: d.modo === "automatico" ? d.hora_fim : null,
+        intervalo_min: d.modo === "automatico" ? d.intervalo_min || 15 : 15,
+        pausa_inicio: pausaValida ? d.pausa_inicio : null,
+        pausa_fim: pausaValida ? d.pausa_fim : null,
+        horarios_manuais: d.modo === "manual" ? d.horarios_manuais : [],
+      };
+    });
 
   if (linhas.length > 0) {
     const { error } = await supabase.from("horarios_trabalho").insert(linhas);

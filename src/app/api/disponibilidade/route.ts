@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
 
   const { data: horarios } = await supabase
     .from("horarios_trabalho")
-    .select("dia_semana, hora_inicio, hora_fim")
+    .select(
+      "dia_semana, modo, hora_inicio, hora_fim, intervalo_min, pausa_inicio, pausa_fim, horarios_manuais",
+    )
     .eq("barbeiro_id", barbeiroId);
 
   const { data: bloqueios } = await supabase

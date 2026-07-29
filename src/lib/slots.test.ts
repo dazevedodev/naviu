@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gerarSlotsDisponiveis } from "./slots";
+import { gerarSlotsDisponiveis, type JanelaTrabalho } from "./slots";
 import { horarioBrasilia } from "./timezone";
 
 // Segunda-feira, 2026-08-03 (dia_semana = 1)
@@ -9,13 +9,27 @@ function horario(hora: string) {
   return horarioBrasilia(SEGUNDA_ISO, hora);
 }
 
+function janelaAutomatica(overrides: Partial<JanelaTrabalho> = {}): JanelaTrabalho {
+  return {
+    dia_semana: 1,
+    modo: "automatico",
+    hora_inicio: "09:00",
+    hora_fim: "12:00",
+    intervalo_min: 15,
+    pausa_inicio: null,
+    pausa_fim: null,
+    horarios_manuais: [],
+    ...overrides,
+  };
+}
+
 describe("gerarSlotsDisponiveis", () => {
   it("gera slots a cada 15min dentro da janela de trabalho", () => {
     const slots = gerarSlotsDisponiveis({
       dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
-      horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "12:00" }],
+      horariosTrabalho: [janelaAutomatica()],
       ocupados: [],
     });
 
@@ -24,12 +38,26 @@ describe("gerarSlotsDisponiveis", () => {
     expect(slots.at(-1)).toEqual(horario("11:30"));
   });
 
+  it("respeita um intervalo diferente de 15min (ex.: de 1 em 1 hora)", () => {
+    const slots = gerarSlotsDisponiveis({
+      dataISO: SEGUNDA_ISO,
+      diaSemana: 1,
+      duracaoServicoMin: 30,
+      horariosTrabalho: [
+        janelaAutomatica({ hora_inicio: "09:00", hora_fim: "12:00", intervalo_min: 60 }),
+      ],
+      ocupados: [],
+    });
+
+    expect(slots).toEqual([horario("09:00"), horario("10:00"), horario("11:00")]);
+  });
+
   it("não inclui horário só para o dia da semana correspondente", () => {
     const slots = gerarSlotsDisponiveis({
       dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
-      horariosTrabalho: [{ dia_semana: 2, hora_inicio: "09:00", hora_fim: "12:00" }],
+      horariosTrabalho: [janelaAutomatica({ dia_semana: 2 })],
       ocupados: [],
     });
 
@@ -41,7 +69,7 @@ describe("gerarSlotsDisponiveis", () => {
       dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
-      horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "10:00" }],
+      horariosTrabalho: [janelaAutomatica({ hora_inicio: "09:00", hora_fim: "10:00" })],
       ocupados: [{ inicio: horario("09:15"), fim: horario("09:45") }],
     });
 
@@ -59,7 +87,7 @@ describe("gerarSlotsDisponiveis", () => {
       dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
-      horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "12:00" }],
+      horariosTrabalho: [janelaAutomatica()],
       ocupados: [{ inicio: inicioDia, fim: fimDia }],
     });
 
@@ -71,7 +99,7 @@ describe("gerarSlotsDisponiveis", () => {
       dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 30,
-      horariosTrabalho: [{ dia_semana: 1, hora_inicio: "09:00", hora_fim: "10:00" }],
+      horariosTrabalho: [janelaAutomatica({ hora_inicio: "09:00", hora_fim: "10:00" })],
       ocupados: [],
       agora: horario("09:20"),
     });
@@ -79,18 +107,67 @@ describe("gerarSlotsDisponiveis", () => {
     expect(slots).toEqual([horario("09:30")]);
   });
 
-  it("soma janelas de múltiplos intervalos no mesmo dia", () => {
+  it("pula a pausa (ex.: almoço) no modo automático", () => {
     const slots = gerarSlotsDisponiveis({
       dataISO: SEGUNDA_ISO,
       diaSemana: 1,
       duracaoServicoMin: 60,
       horariosTrabalho: [
-        { dia_semana: 1, hora_inicio: "09:00", hora_fim: "10:00" },
-        { dia_semana: 1, hora_inicio: "14:00", hora_fim: "15:00" },
+        janelaAutomatica({
+          hora_inicio: "09:00",
+          hora_fim: "15:00",
+          intervalo_min: 60,
+          pausa_inicio: "12:00",
+          pausa_fim: "13:00",
+        }),
       ],
       ocupados: [],
     });
 
-    expect(slots).toEqual([horario("09:00"), horario("14:00")]);
+    expect(slots).toEqual([
+      horario("09:00"),
+      horario("10:00"),
+      horario("11:00"),
+      horario("13:00"),
+      horario("14:00"),
+    ]);
+  });
+
+  it("modo manual usa exatamente os horários listados, sem gerar nada", () => {
+    const slots = gerarSlotsDisponiveis({
+      dataISO: SEGUNDA_ISO,
+      diaSemana: 1,
+      duracaoServicoMin: 30,
+      horariosTrabalho: [
+        janelaAutomatica({
+          modo: "manual",
+          hora_inicio: null,
+          hora_fim: null,
+          horarios_manuais: ["09:00", "10:30", "14:00"],
+        }),
+      ],
+      ocupados: [],
+    });
+
+    expect(slots).toEqual([horario("09:00"), horario("10:30"), horario("14:00")]);
+  });
+
+  it("modo manual também respeita conflito com horário ocupado", () => {
+    const slots = gerarSlotsDisponiveis({
+      dataISO: SEGUNDA_ISO,
+      diaSemana: 1,
+      duracaoServicoMin: 30,
+      horariosTrabalho: [
+        janelaAutomatica({
+          modo: "manual",
+          hora_inicio: null,
+          hora_fim: null,
+          horarios_manuais: ["09:00", "10:30"],
+        }),
+      ],
+      ocupados: [{ inicio: horario("09:00"), fim: horario("09:30") }],
+    });
+
+    expect(slots).toEqual([horario("10:30")]);
   });
 });

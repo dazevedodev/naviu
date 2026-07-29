@@ -41,8 +41,13 @@ export type HorarioTrabalho = {
   id: string;
   barbeiro_id: string;
   dia_semana: number; // 0=domingo ... 6=sábado
-  hora_inicio: string; // "HH:MM:SS"
-  hora_fim: string;
+  modo: "automatico" | "manual";
+  hora_inicio: string | null; // "HH:MM:SS" — só no modo automático
+  hora_fim: string | null;
+  intervalo_min: number; // passo entre horários, só no modo automático
+  pausa_inicio: string | null;
+  pausa_fim: string | null;
+  horarios_manuais: string[]; // ["HH:MM", ...] — só no modo manual
 };
 
 export type Bloqueio = {

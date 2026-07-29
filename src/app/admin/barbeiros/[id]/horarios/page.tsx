@@ -89,7 +89,9 @@ export default async function HorariosBarbeiroPage({
   const [{ data: horarios }, { data: bloqueios }] = await Promise.all([
     supabase
       .from("horarios_trabalho")
-      .select("dia_semana, hora_inicio, hora_fim")
+      .select(
+        "dia_semana, modo, hora_inicio, hora_fim, intervalo_min, pausa_inicio, pausa_fim, horarios_manuais",
+      )
       .eq("barbeiro_id", id)
       .order("dia_semana"),
     supabase
@@ -107,8 +109,13 @@ export default async function HorariosBarbeiroPage({
     return {
       dia_semana: diaSemana,
       aberto: Boolean(doDia),
-      hora_inicio: doDia?.hora_inicio.slice(0, 5) ?? "",
-      hora_fim: doDia?.hora_fim.slice(0, 5) ?? "",
+      modo: (doDia?.modo as "automatico" | "manual") ?? "automatico",
+      hora_inicio: doDia?.hora_inicio?.slice(0, 5) ?? "",
+      hora_fim: doDia?.hora_fim?.slice(0, 5) ?? "",
+      intervalo_min: doDia?.intervalo_min ?? 60,
+      pausa_inicio: doDia?.pausa_inicio?.slice(0, 5) ?? "",
+      pausa_fim: doDia?.pausa_fim?.slice(0, 5) ?? "",
+      horarios_manuais: (doDia?.horarios_manuais as string[] | null) ?? [],
     };
   });
 

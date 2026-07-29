@@ -1,12 +1,22 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { salvarHorariosSemana, type DiaHorario } from "./actions";
+import { salvarHorariosSemana, type DiaHorario, type ModoHorario } from "./actions";
 
 const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 const SEG_A_SEX = [1, 2, 3, 4, 5];
 const SEG_A_SAB = [1, 2, 3, 4, 5, 6];
 const TODOS_OS_DIAS = [0, 1, 2, 3, 4, 5, 6];
+
+const INTERVALOS = [
+  { min: 15, label: "15 min" },
+  { min: 20, label: "20 min" },
+  { min: 30, label: "30 min" },
+  { min: 45, label: "45 min" },
+  { min: 60, label: "1 hora" },
+  { min: 90, label: "1h30" },
+  { min: 120, label: "2 horas" },
+];
 
 export function HorariosSemanaForm({
   barbeiroId,
@@ -18,6 +28,7 @@ export function HorariosSemanaForm({
   horarioFechamentoPadrao: string;
 }) {
   const [dias, setDias] = useState<DiaHorario[]>(horariosIniciais);
+  const [novoHorarioManual, setNovoHorarioManual] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -31,9 +42,10 @@ export function HorariosSemanaForm({
 
   function aplicarPreset(diasParaAbrir: number[]) {
     setSalvo(false);
-    const referencia = dias.find((d) => d.aberto) ?? {
+    const referencia = dias.find((d) => d.aberto && d.modo === "automatico") ?? {
       hora_inicio: "09:00",
       hora_fim: horarioFechamentoPadrao.slice(0, 5),
+      intervalo_min: 60,
     };
     setDias((atual) =>
       atual.map((d) =>
@@ -41,12 +53,33 @@ export function HorariosSemanaForm({
           ? {
               ...d,
               aberto: true,
+              modo: "automatico",
               hora_inicio: d.hora_inicio || referencia.hora_inicio,
               hora_fim: d.hora_fim || referencia.hora_fim,
+              intervalo_min: d.intervalo_min || referencia.intervalo_min,
             }
           : d,
       ),
     );
+  }
+
+  function adicionarHorarioManual(diaSemana: number) {
+    const hora = novoHorarioManual[diaSemana];
+    if (!hora) return;
+    const dia = dias.find((d) => d.dia_semana === diaSemana);
+    if (dia?.horarios_manuais.includes(hora)) return;
+
+    atualizarDia(diaSemana, {
+      horarios_manuais: [...(dia?.horarios_manuais ?? []), hora].sort(),
+    });
+    setNovoHorarioManual((atual) => ({ ...atual, [diaSemana]: "" }));
+  }
+
+  function removerHorarioManual(diaSemana: number, hora: string) {
+    const dia = dias.find((d) => d.dia_semana === diaSemana);
+    atualizarDia(diaSemana, {
+      horarios_manuais: (dia?.horarios_manuais ?? []).filter((h) => h !== hora),
+    });
   }
 
   function salvar() {
@@ -89,8 +122,8 @@ export function HorariosSemanaForm({
 
       <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
         {dias.map((d) => (
-          <div key={d.dia_semana} className="flex flex-wrap items-center gap-3 py-3">
-            <label className="flex w-28 shrink-0 items-center gap-2 text-sm text-zinc-950 dark:text-zinc-50">
+          <div key={d.dia_semana} className="py-3">
+            <label className="flex items-center gap-2 text-sm text-zinc-950 dark:text-zinc-50">
               <input
                 type="checkbox"
                 checked={d.aberto}
@@ -99,31 +132,133 @@ export function HorariosSemanaForm({
                     aberto: e.target.checked,
                     hora_inicio: d.hora_inicio || "09:00",
                     hora_fim: d.hora_fim || horarioFechamentoPadrao.slice(0, 5),
+                    intervalo_min: d.intervalo_min || 60,
                   })
                 }
                 className="h-4 w-4"
               />
               {DIAS[d.dia_semana]}
+              {!d.aberto && <span className="text-sm font-normal text-zinc-400">Fechado</span>}
             </label>
 
-            {d.aberto ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="time"
-                  value={d.hora_inicio}
-                  onChange={(e) => atualizarDia(d.dia_semana, { hora_inicio: e.target.value })}
-                  className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                />
-                <span className="text-xs text-zinc-500">até</span>
-                <input
-                  type="time"
-                  value={d.hora_fim}
-                  onChange={(e) => atualizarDia(d.dia_semana, { hora_fim: e.target.value })}
-                  className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                />
+            {d.aberto && (
+              <div className="mt-2 ml-6 flex flex-col gap-3">
+                <div className="flex gap-1 text-xs">
+                  {(["automatico", "manual"] as ModoHorario[]).map((modo) => (
+                    <button
+                      key={modo}
+                      type="button"
+                      onClick={() => atualizarDia(d.dia_semana, { modo })}
+                      className={`rounded-full border px-3 py-1 ${
+                        d.modo === modo
+                          ? "border-zinc-950 bg-zinc-950 text-zinc-50 dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
+                          : "border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-400"
+                      }`}
+                    >
+                      {modo === "automatico" ? "Automático" : "Manual"}
+                    </button>
+                  ))}
+                </div>
+
+                {d.modo === "automatico" ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        type="time"
+                        value={d.hora_inicio}
+                        onChange={(e) =>
+                          atualizarDia(d.dia_semana, { hora_inicio: e.target.value })
+                        }
+                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                      <span className="text-xs text-zinc-500">até</span>
+                      <input
+                        type="time"
+                        value={d.hora_fim}
+                        onChange={(e) => atualizarDia(d.dia_semana, { hora_fim: e.target.value })}
+                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                      <span className="text-xs text-zinc-500">a cada</span>
+                      <select
+                        value={d.intervalo_min}
+                        onChange={(e) =>
+                          atualizarDia(d.dia_semana, { intervalo_min: Number(e.target.value) })
+                        }
+                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      >
+                        {INTERVALOS.map((i) => (
+                          <option key={i.min} value={i.min}>
+                            {i.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                      <span>Pausa (ex.: almoço):</span>
+                      <input
+                        type="time"
+                        value={d.pausa_inicio}
+                        onChange={(e) =>
+                          atualizarDia(d.dia_semana, { pausa_inicio: e.target.value })
+                        }
+                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                      <span>até</span>
+                      <input
+                        type="time"
+                        value={d.pausa_fim}
+                        onChange={(e) => atualizarDia(d.dia_semana, { pausa_fim: e.target.value })}
+                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                      <span>(opcional)</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      {d.horarios_manuais.length === 0 && (
+                        <p className="text-xs text-zinc-400">Nenhum horário adicionado.</p>
+                      )}
+                      {d.horarios_manuais.map((hora) => (
+                        <span
+                          key={hora}
+                          className="flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700"
+                        >
+                          {hora}
+                          <button
+                            type="button"
+                            onClick={() => removerHorarioManual(d.dia_semana, hora)}
+                            className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="time"
+                        value={novoHorarioManual[d.dia_semana] ?? ""}
+                        onChange={(e) =>
+                          setNovoHorarioManual((atual) => ({
+                            ...atual,
+                            [d.dia_semana]: e.target.value,
+                          }))
+                        }
+                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => adicionarHorarioManual(d.dia_semana)}
+                        className="rounded-lg bg-zinc-950 px-3 py-1 text-xs font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
+                      >
+                        + adicionar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <p className="text-sm text-zinc-400">Fechado</p>
             )}
           </div>
         ))}
