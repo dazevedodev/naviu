@@ -6,12 +6,27 @@ import { salvarConfigSinal } from "./actions";
 
 const CHECKOUT_ADDON_SINAL = process.env.NEXT_PUBLIC_KIWIFY_CHECKOUT_URL_ADDON_SINAL;
 
-export function ConfigSinalForm({ barbearia }: { barbearia: Barbearia }) {
+export function ConfigSinalForm({
+  barbearia,
+  usuarioEmail,
+}: {
+  barbearia: Barbearia;
+  usuarioEmail: string | null;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const addonAtivo = barbearia.sinal_addon_status === "ativo";
+
+  // A liberação do complemento (via webhook da Kiwify) é feita batendo o
+  // e-mail da compra com o e-mail cadastrado aqui — pré-preencher o
+  // checkout com esse e-mail evita que a pessoa compre com um e-mail
+  // diferente por engano e o pagamento não libere nada automaticamente.
+  const checkoutUrl =
+    CHECKOUT_ADDON_SINAL && usuarioEmail
+      ? `${CHECKOUT_ADDON_SINAL}?email=${encodeURIComponent(usuarioEmail)}`
+      : CHECKOUT_ADDON_SINAL;
 
   return (
     <div className="max-w-md rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
@@ -29,15 +44,13 @@ export function ConfigSinalForm({ barbearia }: { barbearia: Barbearia }) {
             esse complemento por <strong>R$5,99/mês</strong>.
           </p>
           <p className="mb-3 text-xs text-amber-800 dark:text-amber-300">
-            Importante: use na compra o <strong>mesmo e-mail do seu login
-            aqui no Naviu</strong>. A liberação é automática depois do
-            pagamento, mas só funciona se o e-mail bater — com um e-mail
-            diferente, o pagamento é aprovado só na Kiwify e nada é liberado
-            aqui.
+            A liberação é automática depois do pagamento, batendo o e-mail da
+            compra com o do seu login aqui — o checkout abaixo já vem com seu
+            e-mail preenchido, só não muda esse campo na hora de pagar.
           </p>
-          {CHECKOUT_ADDON_SINAL ? (
+          {checkoutUrl ? (
             <a
-              href={CHECKOUT_ADDON_SINAL}
+              href={checkoutUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block rounded-full bg-zinc-950 px-4 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
