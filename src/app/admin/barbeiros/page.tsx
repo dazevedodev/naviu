@@ -43,13 +43,7 @@ export default async function BarbeirosPage() {
                 href={`/admin/barbeiros/${b.id}/horarios`}
                 className="text-xs text-zinc-500 hover:underline"
               >
-                Horários
-              </Link>
-              <Link
-                href={`/admin/barbeiros/${b.id}/bloqueios`}
-                className="text-xs text-zinc-500 hover:underline"
-              >
-                Folgas
+                Disponibilidade
               </Link>
               <form
                 action={async () => {
