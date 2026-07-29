@@ -32,6 +32,31 @@ export async function alternarAtivoServico(id: string, ativo: boolean) {
   revalidatePath("/admin/servicos");
 }
 
+// Apaga de vez (diferente de só marcar inativo). Se o serviço já tem
+// agendamento vinculado, o banco recusa a exclusão (FK) — nesse caso avisa
+// pra deixar inativo em vez de apagar, já que o histórico depende dele.
+export async function apagarServico(id: string) {
+  const barbearia = await getBarbeariaAtual();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("servicos")
+    .delete()
+    .eq("id", id)
+    .eq("barbearia_id", barbearia.id);
+
+  if (error) {
+    if (error.code === "23503") {
+      return {
+        error: "Esse serviço já tem agendamentos vinculados — deixe inativo em vez de apagar.",
+      };
+    }
+    return { error: "Não foi possível apagar. Tente novamente." };
+  }
+
+  revalidatePath("/admin/servicos");
+  return { error: null };
+}
+
 export async function atualizarDetalhesServico(id: string, formData: FormData) {
   const barbearia = await getBarbeariaAtual();
   const legenda = String(formData.get("legenda") ?? "").trim();

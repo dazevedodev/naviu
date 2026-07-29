@@ -10,6 +10,15 @@ const LABEL_FORMA: Record<FormaPagamento, string> = {
   pix: "PIX",
 };
 
+// Só um redirecionamento pro WhatsApp do cliente (sem mensagem pronta) — a
+// confirmação/lembrete automáticos já vão por e-mail, isso aqui é só pro
+// admin poder falar com o cliente na hora se precisar.
+function linkWhatsApp(telefone: string): string {
+  const digitos = telefone.replace(/\D/g, "");
+  const numero = digitos.startsWith("55") ? digitos : `55${digitos}`;
+  return `https://wa.me/${numero}`;
+}
+
 export function AgendamentoRow({
   id,
   hora,
@@ -45,6 +54,17 @@ export function AgendamentoRow({
       </div>
 
       <div className="flex items-center gap-2">
+        {clienteTelefone && (
+          <a
+            href={linkWhatsApp(clienteTelefone)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg bg-green-600 px-2 py-1 text-xs font-medium text-white hover:bg-green-700"
+          >
+            WhatsApp
+          </a>
+        )}
+
         <select
           disabled={isPending}
           defaultValue={formaPagamento ?? ""}

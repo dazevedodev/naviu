@@ -14,7 +14,10 @@ export type DiaHorario = {
   modo: ModoHorario;
   hora_inicio: string;
   hora_fim: string;
-  intervalo_min: number;
+  // null = campo "a cada" deixado em branco — nesse caso o dia vira uma
+  // lista de horários soltos (mesmo mecanismo do modo manual), mostrada
+  // dentro do próprio card do Automático em vez de trocar de aba.
+  intervalo_min: number | null;
   pausa_inicio: string;
   pausa_fim: string;
   horarios_manuais: string[];
@@ -37,9 +40,15 @@ export async function salvarHorariosSemana(barbeiroId: string, dias: DiaHorario[
 
   if (!barbeiro) return { error: "Barbeiro não encontrado." };
 
+  // "Automático" com "a cada" vazio não tem grade nenhuma pra gerar — vira
+  // lista de horários soltos por baixo dos panos, igual ao modo manual.
+  function modoEfetivo(d: DiaHorario): ModoHorario {
+    return d.modo === "automatico" && d.intervalo_min == null ? "manual" : d.modo;
+  }
+
   for (const d of dias) {
     if (!d.aberto) continue;
-    if (d.modo === "automatico") {
+    if (modoEfetivo(d) === "automatico") {
       if (!d.hora_inicio || !d.hora_fim || d.hora_fim <= d.hora_inicio) {
         return { error: `Horário inválido em ${DIAS[d.dia_semana]}.` };
       }
@@ -58,22 +67,23 @@ export async function salvarHorariosSemana(barbeiroId: string, dias: DiaHorario[
   const linhas = dias
     .filter((d) => d.aberto)
     .map((d) => {
+      const modo = modoEfetivo(d);
       // Pausa só é salva se início e fim foram preenchidos — deixar só um
       // dos dois em branco não trava o salvamento, só ignora a pausa.
       const pausaValida = Boolean(
-        d.modo === "automatico" && d.pausa_inicio && d.pausa_fim && d.pausa_fim > d.pausa_inicio,
+        modo === "automatico" && d.pausa_inicio && d.pausa_fim && d.pausa_fim > d.pausa_inicio,
       );
 
       return {
         barbeiro_id: barbeiroId,
         dia_semana: d.dia_semana,
-        modo: d.modo,
-        hora_inicio: d.modo === "automatico" ? d.hora_inicio : null,
-        hora_fim: d.modo === "automatico" ? d.hora_fim : null,
-        intervalo_min: d.modo === "automatico" ? d.intervalo_min || 15 : 15,
+        modo,
+        hora_inicio: modo === "automatico" ? d.hora_inicio : null,
+        hora_fim: modo === "automatico" ? d.hora_fim : null,
+        intervalo_min: modo === "automatico" ? d.intervalo_min || 15 : 15,
         pausa_inicio: pausaValida ? d.pausa_inicio : null,
         pausa_fim: pausaValida ? d.pausa_fim : null,
-        horarios_manuais: d.modo === "manual" ? d.horarios_manuais : [],
+        horarios_manuais: modo === "manual" ? d.horarios_manuais : [],
       };
     });
 

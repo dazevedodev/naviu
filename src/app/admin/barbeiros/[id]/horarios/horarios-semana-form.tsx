@@ -81,6 +81,53 @@ export function HorariosSemanaForm({
     });
   }
 
+  function renderHorariosSoltos(d: DiaHorario) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-2">
+          {d.horarios_manuais.length === 0 && (
+            <p className="text-xs text-zinc-400">Nenhum horário adicionado.</p>
+          )}
+          {d.horarios_manuais.map((hora) => (
+            <span
+              key={hora}
+              className="flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700"
+            >
+              {hora}
+              <button
+                type="button"
+                onClick={() => removerHorarioManual(d.dia_semana, hora)}
+                className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="time"
+            value={novoHorarioManual[d.dia_semana] ?? ""}
+            onChange={(e) =>
+              setNovoHorarioManual((atual) => ({
+                ...atual,
+                [d.dia_semana]: e.target.value,
+              }))
+            }
+            className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          />
+          <button
+            type="button"
+            onClick={() => adicionarHorarioManual(d.dia_semana)}
+            className="rounded-lg bg-zinc-950 px-3 py-1 text-xs font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
+          >
+            + adicionar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   function salvar() {
     startTransition(async () => {
       const result = await salvarHorariosSemana(barbeiroId, dias);
@@ -256,12 +303,14 @@ export function HorariosSemanaForm({
                       <input
                         type="number"
                         min={1}
-                        value={d.intervalo_min}
-                        onChange={(e) =>
+                        placeholder="min"
+                        value={d.intervalo_min ?? ""}
+                        onChange={(e) => {
+                          const valor = e.target.value;
                           atualizarDia(d.dia_semana, {
-                            intervalo_min: Math.max(1, Number(e.target.value) || 1),
-                          })
-                        }
+                            intervalo_min: valor === "" ? null : Math.max(1, Number(valor) || 1),
+                          });
+                        }}
                         className="w-16 rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                       />
                       <span className="text-xs text-zinc-500">min</span>
@@ -277,69 +326,39 @@ export function HorariosSemanaForm({
                       ))}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                      <span>Pausa (ex.: almoço):</span>
-                      <input
-                        type="time"
-                        value={d.pausa_inicio}
-                        onChange={(e) =>
-                          atualizarDia(d.dia_semana, { pausa_inicio: e.target.value })
-                        }
-                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                      />
-                      <span>até</span>
-                      <input
-                        type="time"
-                        value={d.pausa_fim}
-                        onChange={(e) => atualizarDia(d.dia_semana, { pausa_fim: e.target.value })}
-                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                      />
-                      <span>(opcional)</span>
-                    </div>
+                    {d.intervalo_min == null ? (
+                      <>
+                        <p className="text-xs text-zinc-500">
+                          Sem intervalo fixo — adicione os horários soltos que quiser:
+                        </p>
+                        {renderHorariosSoltos(d)}
+                      </>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                        <span>Pausa (ex.: almoço):</span>
+                        <input
+                          type="time"
+                          value={d.pausa_inicio}
+                          onChange={(e) =>
+                            atualizarDia(d.dia_semana, { pausa_inicio: e.target.value })
+                          }
+                          className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        />
+                        <span>até</span>
+                        <input
+                          type="time"
+                          value={d.pausa_fim}
+                          onChange={(e) =>
+                            atualizarDia(d.dia_semana, { pausa_fim: e.target.value })
+                          }
+                          className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        />
+                        <span>(opcional)</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap gap-2">
-                      {d.horarios_manuais.length === 0 && (
-                        <p className="text-xs text-zinc-400">Nenhum horário adicionado.</p>
-                      )}
-                      {d.horarios_manuais.map((hora) => (
-                        <span
-                          key={hora}
-                          className="flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700"
-                        >
-                          {hora}
-                          <button
-                            type="button"
-                            onClick={() => removerHorarioManual(d.dia_semana, hora)}
-                            className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="time"
-                        value={novoHorarioManual[d.dia_semana] ?? ""}
-                        onChange={(e) =>
-                          setNovoHorarioManual((atual) => ({
-                            ...atual,
-                            [d.dia_semana]: e.target.value,
-                          }))
-                        }
-                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => adicionarHorarioManual(d.dia_semana)}
-                        className="rounded-lg bg-zinc-950 px-3 py-1 text-xs font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
-                      >
-                        + adicionar
-                      </button>
-                    </div>
-                  </div>
+                  renderHorariosSoltos(d)
                 )}
               </div>
             )}
