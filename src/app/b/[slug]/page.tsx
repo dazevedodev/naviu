@@ -47,11 +47,26 @@ export default async function BarbeariaPublicaPage({
 
         <Link
           href={`/b/${barbearia.slug}/agendar`}
-          className="mb-8 flex h-12 w-full items-center justify-center rounded-full text-sm font-medium text-white"
+          className="mb-3 flex h-12 w-full items-center justify-center rounded-full text-sm font-medium text-white"
           style={{ backgroundColor: "var(--cor-marca)" }}
         >
           Agendar horário
         </Link>
+
+        {barbearia.telefone_whatsapp && (
+          <a
+            href={`https://wa.me/${
+              barbearia.telefone_whatsapp.replace(/\D/g, "").startsWith("55")
+                ? barbearia.telefone_whatsapp.replace(/\D/g, "")
+                : `55${barbearia.telefone_whatsapp.replace(/\D/g, "")}`
+            }`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-8 flex h-11 w-full items-center justify-center rounded-full border border-zinc-300 text-sm font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+          >
+            Falar no WhatsApp
+          </a>
+        )}
 
         {servicos.length > 0 && (
           <div>

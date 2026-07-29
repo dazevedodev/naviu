@@ -1,5 +1,6 @@
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { AparenciaForm } from "./aparencia-form";
+import { SitePersonalizadoForm } from "./site-personalizado-form";
 
 export default async function AparenciaPage() {
   const barbearia = await getBarbeariaAtual();
@@ -11,6 +12,8 @@ export default async function AparenciaPage() {
       </h1>
 
       <AparenciaForm barbearia={barbearia} />
+
+      <SitePersonalizadoForm />
     </div>
   );
 }

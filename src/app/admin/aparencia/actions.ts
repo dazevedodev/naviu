@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { validarImagem, enviarImagem } from "@/lib/upload-imagem";
+import { enviarEmailLeadSitePersonalizado } from "@/lib/email";
 
 export async function salvarAparencia(formData: FormData) {
   const barbearia = await getBarbeariaAtual();
@@ -46,5 +47,21 @@ export async function salvarAparencia(formData: FormData) {
   revalidatePath("/admin/aparencia");
   revalidatePath(`/b/${barbearia.slug}`);
   revalidatePath(`/b/${barbearia.slug}/agendar`);
+  return { error: null };
+}
+
+export async function solicitarSitePersonalizado(formData: FormData) {
+  const barbearia = await getBarbeariaAtual();
+  const mensagem = String(formData.get("mensagem") ?? "").trim() || null;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("leads_site_personalizado")
+    .insert({ barbearia_id: barbearia.id, mensagem });
+
+  if (error) return { error: "Não foi possível enviar. Tente novamente." };
+
+  await enviarEmailLeadSitePersonalizado(barbearia.nome, mensagem);
+
   return { error: null };
 }

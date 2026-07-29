@@ -94,3 +94,26 @@ export async function enviarEmailNotificacaoAdmin(
     `,
   );
 }
+
+// Lead de interesse no upsell de site personalizado — vai pro e-mail do
+// dono do Naviu, não da barbearia.
+export async function enviarEmailLeadSitePersonalizado(
+  barbeariaNome: string,
+  mensagem: string | null,
+) {
+  const destinatario = process.env.NAVIU_OWNER_EMAIL;
+  if (!destinatario) {
+    console.warn("[email] NAVIU_OWNER_EMAIL não configurado, lead não notificado por e-mail.");
+    return;
+  }
+
+  await enviar(
+    destinatario,
+    `Lead: site personalizado — ${barbeariaNome}`,
+    `
+      <h2>Pedido de site personalizado</h2>
+      <p><strong>${barbeariaNome}</strong> quer saber mais sobre o site personalizado.</p>
+      ${mensagem ? `<p>Mensagem: ${mensagem}</p>` : ""}
+    `,
+  );
+}
