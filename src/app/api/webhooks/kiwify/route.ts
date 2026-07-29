@@ -15,7 +15,7 @@ import { tokenDaQueryValido } from "@/lib/verificar-token";
 const PRODUTO_ID_SOLO = process.env.KIWIFY_PRODUTO_ID_PLANO_SOLO;
 const PRODUTO_ID_BARBEARIA = process.env.KIWIFY_PRODUTO_ID_PLANO_BARBEARIA;
 
-// Complemento pago (R$15/mês) que libera o sinal via PIX — produto separado
+// Complemento pago (R$5,99/mês) que libera o sinal via PIX — produto separado
 // da assinatura do plano, não mexe em `plano`/`assinatura_status`.
 const PRODUTO_ADDON_SINAL = process.env.KIWIFY_PRODUTO_ID_ADDON_SINAL;
 

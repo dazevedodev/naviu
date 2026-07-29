@@ -60,7 +60,7 @@ export async function salvarConfigSinal(formData: FormData) {
   // mesmo que alguém tente burlar o checkbox desabilitado na interface.
   if (sinal_ativo && barbearia.sinal_addon_status !== "ativo") {
     return {
-      error: "Assine o complemento do sinal (R$15/mês) antes de ativar essa opção.",
+      error: "Assine o complemento do sinal (R$5,99/mês) antes de ativar essa opção.",
     };
   }
 

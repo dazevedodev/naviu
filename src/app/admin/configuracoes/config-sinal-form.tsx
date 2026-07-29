@@ -19,14 +19,14 @@ export function ConfigSinalForm({ barbearia }: { barbearia: Barbearia }) {
         Sinal (pagamento antecipado)
       </h2>
       <p className="mb-4 text-xs text-zinc-500">
-        Complemento pago — R$15/mês a mais na sua assinatura.
+        Complemento pago — R$5,99/mês a mais na sua assinatura.
       </p>
 
       {!addonAtivo ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/30">
           <p className="mb-3 text-amber-900 dark:text-amber-200">
             Pra exigir sinal via PIX antes de confirmar agendamentos, assine
-            esse complemento por <strong>R$15/mês</strong>.
+            esse complemento por <strong>R$5,99/mês</strong>.
           </p>
           {CHECKOUT_ADDON_SINAL ? (
             <a
