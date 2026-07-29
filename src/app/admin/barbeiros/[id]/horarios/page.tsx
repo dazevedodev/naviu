@@ -2,11 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
-import { removerHorario } from "./actions";
-import { NovoHorarioForm } from "./novo-horario-form";
-import { AplicarPadraoForm } from "./aplicar-padrao-form";
-
-const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+import { HorariosSemanaForm } from "./horarios-semana-form";
+import type { DiaHorario } from "./actions";
 
 export default async function HorariosBarbeiroPage({
   params,
@@ -28,10 +25,22 @@ export default async function HorariosBarbeiroPage({
 
   const { data: horarios } = await supabase
     .from("horarios_trabalho")
-    .select("*")
+    .select("dia_semana, hora_inicio, hora_fim")
     .eq("barbeiro_id", id)
-    .order("dia_semana")
-    .order("hora_inicio");
+    .order("dia_semana");
+
+  const horariosIniciais: DiaHorario[] = Array.from({ length: 7 }, (_, diaSemana) => {
+    // Se por algum motivo existir mais de um horário no mesmo dia (dado
+    // antigo), só o primeiro é considerado — a tela só suporta um intervalo
+    // por dia agora.
+    const doDia = horarios?.find((h) => h.dia_semana === diaSemana);
+    return {
+      dia_semana: diaSemana,
+      aberto: Boolean(doDia),
+      hora_inicio: doDia?.hora_inicio.slice(0, 5) ?? "",
+      hora_fim: doDia?.hora_fim.slice(0, 5) ?? "",
+    };
+  });
 
   return (
     <div>
@@ -48,55 +57,11 @@ export default async function HorariosBarbeiroPage({
         Ver folgas →
       </Link>
 
-      <div className="mb-6">
-        <AplicarPadraoForm
-          barbeiroId={id}
-          horarioFechamentoPadrao={barbearia.horario_fechamento_padrao}
-        />
-      </div>
-
-      <div className="flex flex-col gap-4">
-        {DIAS.map((label, diaSemana) => {
-          const doDia = (horarios ?? []).filter((h) => h.dia_semana === diaSemana);
-          return (
-            <div
-              key={diaSemana}
-              className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
-            >
-              <p className="mb-2 text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                {label}
-              </p>
-              <div className="mb-2 flex flex-col gap-1">
-                {doDia.map((h) => (
-                  <div key={h.id} className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    <span>
-                      {h.hora_inicio.slice(0, 5)} – {h.hora_fim.slice(0, 5)}
-                    </span>
-                    <form
-                      action={async () => {
-                        "use server";
-                        await removerHorario(h.id, id);
-                      }}
-                    >
-                      <button className="text-xs text-red-600 hover:underline dark:text-red-400">
-                        remover
-                      </button>
-                    </form>
-                  </div>
-                ))}
-                {doDia.length === 0 && (
-                  <p className="text-sm text-zinc-400">Fechado</p>
-                )}
-              </div>
-              <NovoHorarioForm
-                barbeiroId={id}
-                diaSemana={diaSemana}
-                horarioFechamentoPadrao={barbearia.horario_fechamento_padrao}
-              />
-            </div>
-          );
-        })}
-      </div>
+      <HorariosSemanaForm
+        barbeiroId={id}
+        horariosIniciais={horariosIniciais}
+        horarioFechamentoPadrao={barbearia.horario_fechamento_padrao}
+      />
     </div>
   );
 }

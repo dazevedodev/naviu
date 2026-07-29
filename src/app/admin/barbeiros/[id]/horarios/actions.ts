@@ -4,58 +4,58 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 
-export async function adicionarHorario(barbeiroId: string, formData: FormData) {
-  const dia_semana = Number(formData.get("dia_semana"));
-  const hora_inicio = String(formData.get("hora_inicio") ?? "");
-  const hora_fim_informado = String(formData.get("hora_fim") ?? "");
+const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
-  if (!hora_inicio) return { error: "Informe o horário de início." };
+export type DiaHorario = {
+  dia_semana: number;
+  aberto: boolean;
+  hora_inicio: string;
+  hora_fim: string;
+};
 
+// Substitui a semana inteira de uma vez — mais simples e menos propenso a
+// erro do que ficar somando/removendo horário por horário. Cada dia tem no
+// máximo um intervalo (nenhum barbeiro real usava mais de um por dia, e
+// isso simplificava bastante a tela).
+export async function salvarHorariosSemana(barbeiroId: string, dias: DiaHorario[]) {
   const barbearia = await getBarbeariaAtual();
-  const hora_fim = hora_fim_informado || barbearia.horario_fechamento_padrao.slice(0, 5);
+  const supabase = await createClient();
 
-  if (hora_fim <= hora_inicio) {
-    return { error: "Horário de fim precisa ser depois do início." };
+  const { data: barbeiro } = await supabase
+    .from("barbeiros")
+    .select("id")
+    .eq("id", barbeiroId)
+    .eq("barbearia_id", barbearia.id)
+    .maybeSingle();
+
+  if (!barbeiro) return { error: "Barbeiro não encontrado." };
+
+  for (const d of dias) {
+    if (d.aberto && (!d.hora_inicio || !d.hora_fim || d.hora_fim <= d.hora_inicio)) {
+      return { error: `Horário inválido em ${DIAS[d.dia_semana]}.` };
+    }
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
+  const { error: erroDelete } = await supabase
     .from("horarios_trabalho")
-    .insert({ barbeiro_id: barbeiroId, dia_semana, hora_inicio, hora_fim });
+    .delete()
+    .eq("barbeiro_id", barbeiroId);
 
-  if (error) return { error: "Não foi possível salvar. Tente novamente." };
+  if (erroDelete) return { error: "Não foi possível salvar. Tente novamente." };
 
-  revalidatePath(`/admin/barbeiros/${barbeiroId}/horarios`);
-  return { error: null };
-}
+  const linhas = dias
+    .filter((d) => d.aberto)
+    .map((d) => ({
+      barbeiro_id: barbeiroId,
+      dia_semana: d.dia_semana,
+      hora_inicio: d.hora_inicio,
+      hora_fim: d.hora_fim,
+    }));
 
-export async function removerHorario(id: string, barbeiroId: string) {
-  const supabase = await createClient();
-  await supabase.from("horarios_trabalho").delete().eq("id", id);
-  revalidatePath(`/admin/barbeiros/${barbeiroId}/horarios`);
-}
-
-export async function aplicarPadraoHorario(barbeiroId: string, formData: FormData) {
-  const dias = formData.getAll("dias").map(Number);
-  const hora_inicio = String(formData.get("hora_inicio") ?? "");
-  const hora_fim_informado = String(formData.get("hora_fim") ?? "");
-
-  if (dias.length === 0) return { error: "Escolha pelo menos um dia." };
-  if (!hora_inicio) return { error: "Informe o horário de início." };
-
-  const barbearia = await getBarbeariaAtual();
-  const hora_fim = hora_fim_informado || barbearia.horario_fechamento_padrao.slice(0, 5);
-
-  if (hora_fim <= hora_inicio) {
-    return { error: "Horário de fim precisa ser depois do início." };
+  if (linhas.length > 0) {
+    const { error } = await supabase.from("horarios_trabalho").insert(linhas);
+    if (error) return { error: "Não foi possível salvar. Tente novamente." };
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("horarios_trabalho")
-    .insert(dias.map((dia_semana) => ({ barbeiro_id: barbeiroId, dia_semana, hora_inicio, hora_fim })));
-
-  if (error) return { error: "Não foi possível salvar. Tente novamente." };
 
   revalidatePath(`/admin/barbeiros/${barbeiroId}/horarios`);
   return { error: null };
