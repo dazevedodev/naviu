@@ -8,6 +8,7 @@ export function DetalhesServicoForm({ servico }: { servico: Servico }) {
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [preview, setPreview] = useState<string | null>(servico.imagem_url);
 
   return (
     <form
@@ -20,6 +21,37 @@ export function DetalhesServicoForm({ servico }: { servico: Servico }) {
       }
       className="max-w-md rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
     >
+      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        Foto
+      </label>
+      <p className="mb-1 text-xs text-zinc-500">
+        Aparece pro cliente na página pública, junto com o serviço.
+      </p>
+      <div className="mb-4 flex items-center gap-3">
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={preview}
+            alt={servico.nome}
+            className="h-14 w-14 rounded-lg border border-zinc-200 object-cover dark:border-zinc-800"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-zinc-300 text-xs text-zinc-400 dark:border-zinc-700">
+            Sem foto
+          </div>
+        )}
+        <input
+          name="imagem"
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) setPreview(URL.createObjectURL(file));
+          }}
+          className="flex-1 text-xs text-zinc-600 dark:text-zinc-400"
+        />
+      </div>
+
       <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
         Legenda
       </label>

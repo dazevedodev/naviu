@@ -338,7 +338,7 @@ export function BookingFlow({
           <button
             type="submit"
             disabled={enviando}
-            className="rounded-full bg-zinc-950 py-2.5 text-sm font-medium text-zinc-50 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950"
+            className="rounded-full bg-[var(--cor-marca)] py-2.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {enviando ? "Agendando..." : "Confirmar agendamento"}
           </button>

@@ -5,6 +5,7 @@ export type Barbearia = {
   endereco: string | null;
   telefone_whatsapp: string | null;
   logo_url: string | null;
+  tema: { cor_primaria?: string };
   plano: "solo" | "barbearia";
   limite_barbeiros: number;
   sinal_ativo: boolean;
@@ -38,6 +39,7 @@ export type Servico = {
   mostrar_duracao: boolean;
   legenda: string | null;
   observacao_interna: string | null;
+  imagem_url: string | null;
 };
 
 export type HorarioTrabalho = {

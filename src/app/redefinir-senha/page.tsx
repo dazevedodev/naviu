@@ -4,47 +4,50 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// Escaneadores de segurança de e-mail (Gmail, gateways corporativos) visitam
+// automaticamente os links dentro do e-mail antes da pessoa clicar — se o
+// link consumisse o token sozinho ao carregar (como o "?code=..."/
+// "#access_token=..." do Supabase fazem), o token já vinha gasto quando a
+// pessoa clicava de verdade, e o link "expirava" quase na hora. Por isso o
+// e-mail agora manda "?token_hash=...&type=..." (ver template em
+// supabase/email-templates/reset-password.html) e só consumimos o token com
+// verifyOtp() numa ação explícita de clique, nunca automaticamente no
+// carregamento da página.
+function lerParametrosUrl() {
+  if (typeof window === "undefined") {
+    return { erro: false, tokenHash: null, code: null, accessToken: null, refreshToken: null };
+  }
+  const queryParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+  return {
+    erro: Boolean(queryParams.get("error") || hashParams.get("error")),
+    tokenHash: queryParams.get("token_hash"),
+    // Formatos antigos (de e-mails já enviados antes dessa correção) — esses
+    // sim são consumidos ao carregar, não tem como evitar retroativamente.
+    code: queryParams.get("code"),
+    accessToken: hashParams.get("access_token"),
+    refreshToken: hashParams.get("refresh_token"),
+  };
+}
+
 export default function RedefinirSenhaPage() {
   const router = useRouter();
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [{ erro, tokenHash, code, accessToken, refreshToken }] = useState(lerParametrosUrl);
   const [pronto, setPronto] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [linkInvalido, setLinkInvalido] = useState(false);
+  const [linkInvalido, setLinkInvalido] = useState(erro);
   const [salvando, setSalvando] = useState(false);
-  const [tokenHash, setTokenHash] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState(false);
 
   useEffect(() => {
-    // Escaneadores de segurança de e-mail (Gmail, gateways corporativos)
-    // visitam automaticamente os links dentro do e-mail antes da pessoa
-    // clicar — se o link consumisse o token sozinho ao carregar (como o
-    // "?code=..."/"#access_token=..." do Supabase fazem), o token já vinha
-    // gasto quando a pessoa clicava de verdade, e o link "expirava" quase
-    // na hora. Por isso o e-mail agora manda "?token_hash=...&type=..." (ver
-    // template em supabase/email-templates/reset-password.html) e só
-    // consumimos o token com verifyOtp() numa ação explícita de clique,
-    // nunca automaticamente no carregamento da página.
-    const queryParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    // Erro já refletido no estado inicial, e o formato "token_hash" só
+    // avança quando a pessoa clica em "Confirmar" — nada a fazer aqui.
+    if (erro || tokenHash) return;
 
-    if (queryParams.get("error") || hashParams.get("error")) {
-      setLinkInvalido(true);
-      return;
-    }
-
-    const hash = queryParams.get("token_hash");
-    if (hash) {
-      setTokenHash(hash);
-      return;
-    }
-
-    // Formatos antigos (de e-mails já enviados antes dessa correção) —
-    // esses sim são consumidos ao carregar, não tem como evitar retroativamente.
     const supabase = createClient();
-    const code = queryParams.get("code");
-    const accessToken = hashParams.get("access_token");
-    const refreshToken = hashParams.get("refresh_token");
 
     if (code) {
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
@@ -69,7 +72,7 @@ export default function RedefinirSenhaPage() {
     supabase.auth.getSession().then(({ data }) => {
       setPronto(Boolean(data.session));
     });
-  }, []);
+  }, [erro, tokenHash, code, accessToken, refreshToken]);
 
   async function handleConfirmarLink() {
     if (!tokenHash) return;
