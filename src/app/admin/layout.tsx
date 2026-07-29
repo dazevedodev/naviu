@@ -11,6 +11,12 @@ const NAV = [
   { href: "/admin/configuracoes", label: "Configurações" },
 ];
 
+// O WhatsApp bloqueia ser embutido em iframe de outro site (CSP
+// frame-ancestors só permite domínios deles) — o mais perto que dá de
+// "abrir o zap por aqui" é um link que abre o WhatsApp Web numa aba nova.
+// O admin escaneia o QR code uma vez e fica logado nessa aba.
+const WHATSAPP_WEB_URL = "https://web.whatsapp.com";
+
 export default async function AdminLayout({
   children,
 }: {
@@ -43,6 +49,14 @@ export default async function AdminLayout({
               {item.label}
             </Link>
           ))}
+          <a
+            href={WHATSAPP_WEB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-lg px-3 py-2 text-sm text-green-700 hover:bg-zinc-100 dark:text-green-400 dark:hover:bg-zinc-900"
+          >
+            WhatsApp Web ↗
+          </a>
         </nav>
 
         <main className="min-w-0 flex-1 p-6">{children}</main>
