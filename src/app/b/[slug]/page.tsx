@@ -14,24 +14,38 @@ export default async function BarbeariaPublicaPage({
 
   if (!dados) notFound();
   const { barbearia, servicos } = dados;
+  const corFundo = barbearia.tema?.cor_fundo;
 
   return (
     <div
-      className="flex flex-1 flex-col items-center bg-zinc-50 px-4 py-10 dark:bg-black"
-      style={{ ["--cor-marca" as string]: barbearia.tema?.cor_primaria || COR_PADRAO }}
+      className={`flex flex-1 flex-col items-center px-4 py-10 ${
+        corFundo ? "" : "bg-zinc-50 dark:bg-black"
+      }`}
+      style={{
+        ["--cor-marca" as string]: barbearia.tema?.cor_primaria || COR_PADRAO,
+        ...(corFundo ? { backgroundColor: corFundo } : {}),
+      }}
     >
       <div className="w-full max-w-lg">
+        {barbearia.capa_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={barbearia.capa_url}
+            alt=""
+            className="mb-[-2.5rem] h-32 w-full rounded-2xl object-cover"
+          />
+        )}
         <header className="mb-8 flex flex-col items-center text-center">
           {barbearia.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={barbearia.logo_url}
               alt={barbearia.nome}
-              className="mb-4 h-20 w-20 rounded-2xl object-cover"
+              className="mb-4 h-20 w-20 rounded-2xl object-cover shadow-md"
             />
           ) : (
             <div
-              className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-semibold text-white"
+              className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-semibold text-white shadow-md"
               style={{ backgroundColor: "var(--cor-marca)" }}
             >
               {barbearia.nome.charAt(0).toUpperCase()}
@@ -42,6 +56,11 @@ export default async function BarbeariaPublicaPage({
           </h1>
           {barbearia.endereco && (
             <p className="mt-1 text-sm text-zinc-500">{barbearia.endereco}</p>
+          )}
+          {barbearia.descricao && (
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              {barbearia.descricao}
+            </p>
           )}
         </header>
 

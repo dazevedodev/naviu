@@ -17,11 +17,17 @@ export default async function BarbeariaBarbeiroPublicaPage({
 
   const barbeiro = barbeiros.find((b) => b.id === barbeiroId);
   if (!barbeiro) notFound();
+  const corFundo = barbearia.tema?.cor_fundo;
 
   return (
     <div
-      className="flex flex-1 flex-col items-center bg-zinc-50 px-4 py-10 dark:bg-black"
-      style={{ ["--cor-marca" as string]: barbearia.tema?.cor_primaria || COR_PADRAO }}
+      className={`flex flex-1 flex-col items-center px-4 py-10 ${
+        corFundo ? "" : "bg-zinc-50 dark:bg-black"
+      }`}
+      style={{
+        ["--cor-marca" as string]: barbearia.tema?.cor_primaria || COR_PADRAO,
+        ...(corFundo ? { backgroundColor: corFundo } : {}),
+      }}
     >
       <div className="w-full max-w-lg">
         <header className="mb-8 text-center">

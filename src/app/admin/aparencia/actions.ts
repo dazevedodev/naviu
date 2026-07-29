@@ -9,36 +9,59 @@ import { enviarEmailLeadSitePersonalizado } from "@/lib/email";
 export async function salvarAparencia(formData: FormData) {
   const barbearia = await getBarbeariaAtual();
   const corPrimaria = String(formData.get("cor_primaria") ?? "").trim();
+  const corFundoInformada = String(formData.get("cor_fundo") ?? "").trim();
+  const descricao = String(formData.get("descricao") ?? "").trim();
   const logo = formData.get("logo") as File | null;
+  const capa = formData.get("capa") as File | null;
 
   if (!/^#[0-9a-fA-F]{6}$/.test(corPrimaria)) {
-    return { error: "Cor inválida." };
+    return { error: "Cor da marca inválida." };
+  }
+  // Cor de fundo é opcional — campo vazio significa "usar o padrão".
+  if (corFundoInformada && !/^#[0-9a-fA-F]{6}$/.test(corFundoInformada)) {
+    return { error: "Cor de fundo inválida." };
   }
 
   const supabase = await createClient();
   let logoUrl = barbearia.logo_url;
+  let capaUrl = barbearia.capa_url;
 
-  // O input de logo é opcional nesse form — só troca a imagem se a pessoa
+  // Logo e capa são opcionais nesse form — só trocam a imagem se a pessoa
   // escolheu um arquivo novo dessa vez.
   if (logo && logo.size > 0) {
     const erroImagem = validarImagem(logo);
     if (erroImagem) return { error: erroImagem };
 
     const ext = logo.name.split(".").pop() || "jpg";
-    const { url, error } = await enviarImagem(
-      supabase,
-      `${barbearia.id}/logo.${ext}`,
-      logo,
-    );
+    const { url, error } = await enviarImagem(supabase, `${barbearia.id}/logo.${ext}`, logo);
     if (error) return { error };
     logoUrl = url;
+  }
+
+  if (capa && capa.size > 0) {
+    const erroImagem = validarImagem(capa);
+    if (erroImagem) return { error: erroImagem };
+
+    const ext = capa.name.split(".").pop() || "jpg";
+    const { url, error } = await enviarImagem(supabase, `${barbearia.id}/capa.${ext}`, capa);
+    if (error) return { error };
+    capaUrl = url;
+  }
+
+  const tema = { ...barbearia.tema, cor_primaria: corPrimaria };
+  if (corFundoInformada) {
+    tema.cor_fundo = corFundoInformada;
+  } else {
+    delete tema.cor_fundo;
   }
 
   const { error } = await supabase
     .from("barbearias")
     .update({
       logo_url: logoUrl,
-      tema: { ...barbearia.tema, cor_primaria: corPrimaria },
+      capa_url: capaUrl,
+      descricao: descricao || null,
+      tema,
     })
     .eq("id", barbearia.id);
 

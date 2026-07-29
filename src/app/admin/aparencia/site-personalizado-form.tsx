@@ -30,15 +30,22 @@ export function SitePersonalizadoForm() {
           setEnviado(!result.error);
         })
       }
-      className="max-w-md rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+      className="max-w-md rounded-2xl border-2 border-zinc-950 bg-white p-6 dark:border-zinc-50 dark:bg-zinc-950"
     >
+      <span className="mb-2 inline-block rounded-full bg-zinc-950 px-2 py-0.5 text-xs font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950">
+        Diferencial
+      </span>
       <h2 className="mb-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-        Quer um site 100% personalizado?
+        Quer um site exclusivo, feito só pra sua barbearia?
       </h2>
       <p className="mb-4 text-xs text-zinc-500">
-        Além do site automático acima, a gente também faz um site sob medida
-        pra sua barbearia, com design próprio — por um valor único. Manda uma
-        mensagem que a gente te procura pra conversar.
+        O que você personalizou acima (logo, capa, cor, descrição) já deixa
+        sua página com a sua cara — mas isso ainda é o modelo padrão do
+        Naviu. Se você quer se destacar de verdade da concorrência, a gente
+        cria um site 100% do zero pra sua marca: layout próprio, seções sob
+        medida, tudo pensado só pra sua barbearia. Por um valor único, sem
+        mensalidade a mais. Manda uma mensagem que a gente te procura pra
+        conversar.
       </p>
 
       <textarea
