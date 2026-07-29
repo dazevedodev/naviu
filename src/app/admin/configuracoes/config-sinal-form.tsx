@@ -28,6 +28,13 @@ export function ConfigSinalForm({ barbearia }: { barbearia: Barbearia }) {
             Pra exigir sinal via PIX antes de confirmar agendamentos, assine
             esse complemento por <strong>R$5,99/mês</strong>.
           </p>
+          <p className="mb-3 text-xs text-amber-800 dark:text-amber-300">
+            Importante: use na compra o <strong>mesmo e-mail do seu login
+            aqui no Naviu</strong>. A liberação é automática depois do
+            pagamento, mas só funciona se o e-mail bater — com um e-mail
+            diferente, o pagamento é aprovado só na Kiwify e nada é liberado
+            aqui.
+          </p>
           {CHECKOUT_ADDON_SINAL ? (
             <a
               href={CHECKOUT_ADDON_SINAL}
