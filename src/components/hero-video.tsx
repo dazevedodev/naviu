@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-// Colar aqui o ID do vídeo do YouTube quando estiver pronto — é o trecho
-// depois de "v=" na URL (ex: "dQw4w9WgXcQ"). Enquanto for null, mostra só
-// o placeholder abaixo.
-const YOUTUBE_VIDEO_ID: string | null = null;
+import { YOUTUBE_VIDEO_ID } from "./hero-video-config";
 
 type YTPlayer = {
   unMute: () => void;

@@ -1,4 +1,4 @@
-type Plano = {
+export type Plano = {
   id: "solo" | "barbearia";
   nome: string;
   preco: string;
@@ -7,7 +7,7 @@ type Plano = {
   checkoutUrl?: string;
 };
 
-const PLANOS: Plano[] = [
+export const PLANOS: Plano[] = [
   {
     id: "solo",
     nome: "Solo",

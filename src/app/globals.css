@@ -24,3 +24,31 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Poste de barbeiro da home — listras diagonais que sobem em loop. */
+.poste-barbeiro {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #c1272d 0 14px,
+    #f1f2ee 14px 28px,
+    #0e2a23 28px 34px,
+    #f1f2ee 34px 48px
+  );
+  animation: poste-gira 2.4s linear infinite;
+}
+
+@keyframes poste-gira {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    /* 48px de listra na diagonal = 48·√2 na vertical: o loop fecha sem pulo. */
+    background-position: 0 calc(-48px * 1.41421);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poste-barbeiro {
+    animation: none;
+  }
+}
