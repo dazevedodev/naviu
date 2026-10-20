@@ -2,8 +2,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { gerarSlugUnico } from "@/lib/slug";
-
-const DIAS_TRIAL = 14;
+import { DIAS_TESTE } from "@/lib/planos";
 
 export async function criarConta(formData: FormData) {
   const nomeBarbearia = String(formData.get("nome_barbearia") ?? "").trim();
@@ -43,7 +42,7 @@ export async function criarConta(formData: FormData) {
   }
 
   const assinaturaValidoAte = new Date();
-  assinaturaValidoAte.setDate(assinaturaValidoAte.getDate() + DIAS_TRIAL);
+  assinaturaValidoAte.setDate(assinaturaValidoAte.getDate() + DIAS_TESTE);
 
   const { data: barbearia, error: erroBarbearia } = await supabase
     .from("barbearias")

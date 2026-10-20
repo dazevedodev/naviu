@@ -7,7 +7,7 @@ import {
 } from "next/font/google";
 import { HeroVideo } from "@/components/hero-video";
 import { YOUTUBE_VIDEO_ID } from "@/components/hero-video-config";
-import { PLANOS } from "@/components/planos-cards";
+import { DIAS_TESTE, PLANOS, formatarReais } from "@/lib/planos";
 
 const letreiro = Big_Shoulders({
   variable: "--font-letreiro",
@@ -270,7 +270,7 @@ export default function Home() {
               Planos
             </h2>
             <p className="mt-3 text-center text-[#C9D6CF]">
-              Sem fidelidade. Cancele quando quiser.
+              {DIAS_TESTE} dias grátis, sem cartão. Sem fidelidade: cancele quando quiser.
             </p>
             <div className="mt-12 grid gap-6 sm:grid-cols-2">
               {PLANOS.map((plano) => (
@@ -293,7 +293,7 @@ export default function Home() {
                     )}
                   </div>
                   <p className="mt-2 font-[family-name:var(--font-mono-naviu)] text-2xl font-medium">
-                    {plano.preco}
+                    {formatarReais(plano.valor)}/mês
                   </p>
                   <ul
                     className={`mt-6 mb-8 flex flex-1 flex-col gap-2.5 text-sm ${
@@ -309,22 +309,16 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                  {plano.checkoutUrl ? (
-                    <a
-                      href={plano.checkoutUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex h-12 items-center justify-center rounded-full px-6 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A24B] ${
-                        plano.destaque
-                          ? "bg-[#0E2A23] text-[#F1F2EE] hover:bg-[#173F33]"
-                          : "border border-[#C9A24B] text-[#F1F2EE] hover:bg-[#C9A24B] hover:text-[#0E2A23]"
-                      }`}
-                    >
-                      Assinar {plano.nome}
-                    </a>
-                  ) : (
-                    <p className="text-center text-xs opacity-60">Checkout em breve</p>
-                  )}
+                  <Link
+                    href="/cadastro"
+                    className={`flex h-12 items-center justify-center rounded-full px-6 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A24B] ${
+                      plano.destaque
+                        ? "bg-[#0E2A23] text-[#F1F2EE] hover:bg-[#173F33]"
+                        : "border border-[#C9A24B] text-[#F1F2EE] hover:bg-[#C9A24B] hover:text-[#0E2A23]"
+                    }`}
+                  >
+                    Testar {DIAS_TESTE} dias grátis
+                  </Link>
                 </div>
               ))}
             </div>

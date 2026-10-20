@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { enviarEmailConfirmacaoCliente, enviarEmailNotificacaoAdmin } from "@/lib/email";
+import { acessoLiberado } from "@/lib/assinatura";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -34,12 +35,19 @@ export async function POST(request: NextRequest) {
 
   const { data: barbearia } = await supabase
     .from("barbearias")
-    .select("nome, endereco")
+    .select("nome, endereco, assinatura_status, assinatura_valido_ate")
     .eq("id", barbearia_id)
     .single();
 
   if (!barbearia) {
     return NextResponse.json({ error: "Barbearia não encontrada." }, { status: 404 });
+  }
+
+  if (!acessoLiberado(barbearia)) {
+    return NextResponse.json(
+      { error: "O agendamento online desta barbearia está pausado." },
+      { status: 403 },
+    );
   }
 
   const { data: servico } = await supabase

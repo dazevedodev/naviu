@@ -1,6 +1,6 @@
 # Naviu
 
-Agendamento online para barbearias — link público, lembrete via WhatsApp (link `wa.me`, sem API) e sinal opcional via PIX.
+Agendamento online para barbearias — link público, confirmação e lembrete por e-mail, assinatura mensal cobrada pelo Asaas.
 
 Em produção em [naviu.vercel.app](https://naviu.vercel.app).
 

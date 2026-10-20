@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { acessoLiberado } from "@/lib/assinatura";
 import { buscarDadosBarbearia } from "./dados";
+import { AgendaPausada } from "./agenda-pausada";
 
 const COR_PADRAO = "#09090b";
 
@@ -64,13 +66,17 @@ export default async function BarbeariaPublicaPage({
           )}
         </header>
 
-        <Link
-          href={`/b/${barbearia.slug}/agendar`}
-          className="mb-3 flex h-12 w-full items-center justify-center rounded-full text-sm font-medium text-white"
-          style={{ backgroundColor: "var(--cor-marca)" }}
-        >
-          Agendar horário
-        </Link>
+        {acessoLiberado(barbearia) ? (
+          <Link
+            href={`/b/${barbearia.slug}/agendar`}
+            className="mb-3 flex h-12 w-full items-center justify-center rounded-full text-sm font-medium text-white"
+            style={{ backgroundColor: "var(--cor-marca)" }}
+          >
+            Agendar horário
+          </Link>
+        ) : (
+          <AgendaPausada />
+        )}
 
         {barbearia.telefone_whatsapp && (
           <a

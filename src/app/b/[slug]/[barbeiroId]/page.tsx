@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { buscarDadosBarbearia } from "../dados";
 import { BookingFlow } from "../booking-flow";
+import { AgendaPausada } from "../agenda-pausada";
+import { acessoLiberado } from "@/lib/assinatura";
 
 const COR_PADRAO = "#09090b";
 
@@ -39,12 +41,16 @@ export default async function BarbeariaBarbeiroPublicaPage({
           )}
         </header>
 
-        <BookingFlow
-          barbearia={barbearia}
-          barbeiros={barbeiros}
-          servicos={servicos}
-          barbeiroPreSelecionado={barbeiro}
-        />
+        {acessoLiberado(barbearia) ? (
+          <BookingFlow
+            barbearia={barbearia}
+            barbeiros={barbeiros}
+            servicos={servicos}
+            barbeiroPreSelecionado={barbeiro}
+          />
+        ) : (
+          <AgendaPausada />
+        )}
       </div>
     </div>
   );
