@@ -2,10 +2,18 @@ import type Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { criarAgendamento } from "../agendar";
 import { horariosLivres } from "../disponibilidade";
-import { telefoneValido } from "../telefone";
+import { normalizarTelefone, telefoneValido } from "../telefone";
 import { formatarDataBrasilia, formatarHoraBrasilia, hojeISOBrasilia } from "../timezone";
 import type { Barbearia, Barbeiro, Servico } from "../types";
-import { DIAS_SEMANA, dataISOValida, intervaloDeDatas, noPeriodo, type Periodo } from "./datas";
+import {
+  DIAS_SEMANA,
+  MAX_DIAS_A_FRENTE,
+  dataISOValida,
+  intervaloDeDatas,
+  noPeriodo,
+  somarDias,
+  type Periodo,
+} from "./datas";
 
 // O que o agente sabe da barbearia. Tudo vem do banco, filtrado pelo slug da
 // página: o modelo nunca escolhe de qual barbearia está falando.
@@ -77,6 +85,27 @@ export const FERRAMENTAS: Anthropic.Tool[] = [
         },
       },
       required: ["servico_id", "barbeiro_id", "data_hora", "nome", "telefone_whatsapp"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "entrar_na_lista_de_espera",
+    description:
+      "Coloca o cliente na lista de espera de um dia sem horário livre: se alguém cancelar, ele recebe um e-mail " +
+      "para marcar. Só ofereça quando ver_horarios_livres não tiver nada que sirva no dia que ele quer e ele não " +
+      "quiser outro dia. Precisa de nome, WhatsApp e e-mail (o aviso vai por e-mail).",
+    input_schema: {
+      type: "object",
+      properties: {
+        servico_id: { type: "string" },
+        data: { type: "string", description: "dia desejado, YYYY-MM-DD" },
+        periodo: { type: "string", enum: ["manha", "tarde", "noite", "qualquer"] },
+        barbeiro_id: { type: "string", description: "só se o cliente faz questão de um barbeiro" },
+        nome: { type: "string" },
+        telefone_whatsapp: { type: "string" },
+        email: { type: "string" },
+      },
+      required: ["servico_id", "data", "nome", "telefone_whatsapp", "email"],
       additionalProperties: false,
     },
   },
@@ -201,6 +230,64 @@ async function agendar(ctx: ContextoAgente, input: Record<string, unknown>): Pro
   };
 }
 
+async function entrarNaListaDeEspera(
+  ctx: ContextoAgente,
+  input: Record<string, unknown>,
+): Promise<Resultado> {
+  const nome = texto(input.nome);
+  const telefone = texto(input.telefone_whatsapp);
+  const email = texto(input.email);
+  const data = texto(input.data);
+
+  if (nome.length < 2) return { conteudo: "Falta o nome do cliente.", erro: true };
+  if (!telefoneValido(telefone)) return { conteudo: "WhatsApp inválido. Peça o número com DDD.", erro: true };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { conteudo: "A lista de espera avisa por e-mail: peça um e-mail válido.", erro: true };
+  }
+  const hoje = hojeISOBrasilia();
+  if (!dataISOValida(data) || data < hoje || data > somarDias(hoje, MAX_DIAS_A_FRENTE)) {
+    return { conteudo: "Data inválida: precisa ser de hoje até 60 dias para frente, YYYY-MM-DD.", erro: true };
+  }
+
+  const servico = ctx.servicos.find((s) => s.id === texto(input.servico_id));
+  if (!servico) return { conteudo: "Serviço não encontrado.", erro: true };
+  const barbeiroId = texto(input.barbeiro_id);
+  const barbeiro = barbeiroId ? ctx.barbeiros.find((b) => b.id === barbeiroId) : undefined;
+  if (barbeiroId && !barbeiro) return { conteudo: "Barbeiro não encontrado.", erro: true };
+  const periodo = ["manha", "tarde", "noite"].includes(texto(input.periodo)) ? texto(input.periodo) : null;
+
+  // Uma entrada por pessoa e dia: pedir de novo só atualiza o pedido.
+  await ctx.supabase
+    .from("lista_espera")
+    .delete()
+    .eq("barbearia_id", ctx.barbearia.id)
+    .eq("data", data)
+    .eq("telefone_whatsapp", normalizarTelefone(telefone))
+    .is("avisado_em", null);
+
+  const { error } = await ctx.supabase.from("lista_espera").insert({
+    barbearia_id: ctx.barbearia.id,
+    servico_id: servico.id,
+    barbeiro_id: barbeiro?.id ?? null,
+    data,
+    periodo,
+    nome,
+    telefone_whatsapp: normalizarTelefone(telefone),
+    email,
+  });
+  if (error) return { conteudo: "Não foi possível entrar na lista agora. Tente de novo.", erro: true };
+
+  return {
+    conteudo: JSON.stringify({
+      na_lista: true,
+      servico: servico.nome,
+      data,
+      periodo: periodo ?? "qualquer",
+      barbeiro: barbeiro?.nome ?? "qualquer",
+    }),
+  };
+}
+
 export async function executarFerramenta(
   ctx: ContextoAgente,
   nome: string,
@@ -209,5 +296,6 @@ export async function executarFerramenta(
   const dados = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
   if (nome === "ver_horarios_livres") return verHorariosLivres(ctx, dados);
   if (nome === "agendar") return agendar(ctx, dados);
+  if (nome === "entrar_na_lista_de_espera") return entrarNaListaDeEspera(ctx, dados);
   return { conteudo: `Ferramenta desconhecida: ${nome}`, erro: true };
 }

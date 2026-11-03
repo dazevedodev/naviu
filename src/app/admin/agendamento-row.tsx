@@ -1,8 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import type { FormaPagamento } from "@/lib/types";
-import { cancelarAgendamento, concluirAgendamento, definirFormaPagamento } from "./actions";
+import { NOME_STATUS, type FormaPagamento } from "@/lib/types";
+import { cancelarAgendamento, concluirAgendamento, definirFormaPagamento, marcarFalta } from "./actions";
 
 const LABEL_FORMA: Record<FormaPagamento, string> = {
   dinheiro: "Dinheiro",
@@ -28,6 +28,9 @@ export function AgendamentoRow({
   servicoPreco,
   status,
   formaPagamento,
+  alertaHistorico,
+  presencaConfirmada,
+  jaComecou,
 }: {
   id: string;
   hora: string;
@@ -37,9 +40,12 @@ export function AgendamentoRow({
   servicoPreco: number;
   status: string;
   formaPagamento: FormaPagamento | null;
+  alertaHistorico: string | null;
+  presencaConfirmada: boolean;
+  jaComecou: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
-  const finalizado = status === "cancelado" || status === "concluido";
+  const finalizado = ["cancelado", "concluido", "faltou"].includes(status);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
@@ -51,6 +57,20 @@ export function AgendamentoRow({
           {clienteTelefone} · {servicoNome} ·{" "}
           {servicoPreco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
         </p>
+        {(alertaHistorico || (presencaConfirmada && !finalizado)) && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {presencaConfirmada && !finalizado && (
+              <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-400">
+                Confirmou presença
+              </span>
+            )}
+            {alertaHistorico && (
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                Histórico: {alertaHistorico}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -86,7 +106,7 @@ export function AgendamentoRow({
         </select>
 
         <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-          {status}
+          {NOME_STATUS[status] ?? status}
         </span>
 
         {!finalizado && (
@@ -98,6 +118,15 @@ export function AgendamentoRow({
             >
               Concluir
             </button>
+            {jaComecou && (
+              <button
+                disabled={isPending}
+                onClick={() => startTransition(() => marcarFalta(id))}
+                className="text-xs font-medium text-amber-700 hover:underline disabled:opacity-50 dark:text-amber-400"
+              >
+                Faltou
+              </button>
+            )}
             <button
               disabled={isPending}
               onClick={() => startTransition(() => cancelarAgendamento(id))}

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
 import { formatarHoraBrasilia, horarioBrasilia, hojeISOBrasilia } from "@/lib/timezone";
+import { alertaDoHistorico, resumirHistorico, type ItemHistorico } from "@/lib/presenca";
 import { AgendamentoRow } from "./agendamento-row";
+import { ListaEspera } from "./lista-espera";
 import type { FormaPagamento } from "@/lib/types";
 
 function inicioFimDoDia() {
@@ -20,7 +22,7 @@ export default async function AgendaPage() {
     supabase
       .from("agendamentos")
       .select(
-        "id, data_hora, status, forma_pagamento, barbeiro_id, servicos(nome, preco), clientes(nome, telefone_whatsapp)",
+        "id, data_hora, status, forma_pagamento, barbeiro_id, cliente_id, presenca_confirmada_em, servicos(nome, preco), clientes(nome, telefone_whatsapp)",
       )
       .eq("barbearia_id", barbearia.id)
       .gte("data_hora", inicio)
@@ -33,6 +35,33 @@ export default async function AgendaPage() {
       .eq("ativo", true)
       .order("nome"),
   ]);
+
+  // Histórico de quem tem horário hoje: faltas e cancelamentos em cima da
+  // hora aparecem ao lado do nome, para o barbeiro saber com quem lida.
+  const clienteIds = [...new Set((agendamentos ?? []).map((a) => a.cliente_id).filter(Boolean))];
+  const [{ data: historico }, { data: espera }] = await Promise.all([
+    clienteIds.length
+      ? supabase
+          .from("agendamentos")
+          .select("cliente_id, status, data_hora, cancelado_em, cancelado_por")
+          .eq("barbearia_id", barbearia.id)
+          .in("cliente_id", clienteIds)
+      : Promise.resolve({ data: [] as (ItemHistorico & { cliente_id: string })[] }),
+    supabase
+      .from("lista_espera")
+      .select("id, data, periodo, nome, telefone_whatsapp, avisado_em, servicos(nome), barbeiros(nome)")
+      .eq("barbearia_id", barbearia.id)
+      .gte("data", hojeISOBrasilia())
+      .order("data")
+      .order("criado_em"),
+  ]);
+  const alertaPorCliente = new Map(
+    clienteIds.map((id) => [
+      id,
+      alertaDoHistorico(resumirHistorico((historico ?? []).filter((h) => h.cliente_id === id))),
+    ]),
+  );
+  const agora = new Date();
 
   return (
     <div>
@@ -82,6 +111,9 @@ export default async function AgendaPage() {
                       servicoPreco={servico?.preco ?? 0}
                       status={a.status}
                       formaPagamento={a.forma_pagamento as FormaPagamento | null}
+                      alertaHistorico={alertaPorCliente.get(a.cliente_id) ?? null}
+                      presencaConfirmada={Boolean(a.presenca_confirmada_em)}
+                      jaComecou={dataHora <= agora}
                     />
                   );
                 })}
@@ -90,6 +122,19 @@ export default async function AgendaPage() {
           );
         })}
       </div>
+
+      <ListaEspera
+        itens={(espera ?? []).map((e) => ({
+          id: e.id,
+          data: e.data,
+          periodo: e.periodo,
+          nome: e.nome,
+          telefone: e.telefone_whatsapp,
+          avisado: Boolean(e.avisado_em),
+          servico: (e.servicos as unknown as { nome: string } | null)?.nome ?? "",
+          barbeiro: (e.barbeiros as unknown as { nome: string } | null)?.nome ?? null,
+        }))}
+      />
     </div>
   );
 }

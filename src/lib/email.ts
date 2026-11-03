@@ -80,6 +80,48 @@ export async function enviarEmailLembreteCliente(clienteEmail: string, d: Detalh
   );
 }
 
+// Um dia antes: o cliente confirma que vai ou cancela e libera o horário.
+// O link abre uma página com o botão (e-mail que abre link sozinho, como
+// antivírus, não confirma nada por engano).
+export async function enviarEmailPedidoConfirmacao(clienteEmail: string, d: DetalhesAgendamento) {
+  const confirmar = `${appUrl()}/confirmar/${d.cancelamentoToken}`;
+  await enviar(
+    clienteEmail,
+    `Você confirma seu horário? — ${d.barbeariaNome}`,
+    `
+      <h2>Seu horário está chegando</h2>
+      ${blocoDetalhes(d)}
+      <p style="margin:24px 0">
+        <a href="${confirmar}" style="background:#16a34a;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">
+          Confirmar presença
+        </a>
+      </p>
+      ${blocoCancelamento(d)}
+    `,
+  );
+}
+
+export async function enviarEmailVagaAberta(
+  clienteEmail: string,
+  v: { clienteNome: string; barbeariaNome: string; servicoNome: string; dataHora: Date; link: string },
+) {
+  await enviar(
+    clienteEmail,
+    `Abriu um horário — ${v.barbeariaNome}`,
+    `
+      <h2>Oi, ${v.clienteNome}! Abriu um horário</h2>
+      <p>Você estava na lista de espera para <strong>${v.servicoNome}</strong>.
+      Alguém cancelou e ficou livre ${formatarDataBrasilia(v.dataHora)} às ${formatarHoraBrasilia(v.dataHora)}.</p>
+      <p>Avisamos mais de uma pessoa: quem marcar primeiro fica com o horário.</p>
+      <p style="margin:24px 0">
+        <a href="${v.link}" style="background:#C1272D;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">
+          Marcar agora
+        </a>
+      </p>
+    `,
+  );
+}
+
 export async function enviarEmailNotificacaoAdmin(
   adminEmail: string,
   d: DetalhesAgendamento & { clienteNome: string },

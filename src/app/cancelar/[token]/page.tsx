@@ -1,5 +1,6 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { formatarDataBrasilia, formatarHoraBrasilia } from "@/lib/timezone";
+import { NOME_STATUS } from "@/lib/types";
 import { CancelarForm } from "./cancelar-form";
 
 export default async function CancelarPage({
@@ -33,7 +34,7 @@ export default async function CancelarPage({
     endereco: string | null;
   } | null;
   const dataHora = new Date(agendamento.data_hora);
-  const jaFinalizado = agendamento.status === "cancelado" || agendamento.status === "concluido";
+  const jaFinalizado = ["cancelado", "concluido", "faltou"].includes(agendamento.status);
 
   return (
     <div className="mx-auto max-w-md px-6 py-16">
@@ -49,7 +50,7 @@ export default async function CancelarPage({
             {formatarDataBrasilia(dataHora)} às {formatarHoraBrasilia(dataHora)}
           </p>
           <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Status atual: <strong>{agendamento.status}</strong>
+            Status atual: <strong>{NOME_STATUS[agendamento.status] ?? agendamento.status}</strong>
           </p>
         </div>
 

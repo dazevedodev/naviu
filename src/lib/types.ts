@@ -69,7 +69,15 @@ export type Cliente = {
   criado_em: string;
 };
 
-export type AgendamentoStatus = "pendente" | "confirmado" | "cancelado" | "concluido";
+export type AgendamentoStatus = "pendente" | "confirmado" | "cancelado" | "concluido" | "faltou";
+
+export const NOME_STATUS: Record<string, string> = {
+  pendente: "Pendente",
+  confirmado: "Marcado",
+  cancelado: "Cancelado",
+  concluido: "Concluído",
+  faltou: "Faltou",
+};
 
 export type FormaPagamento = "dinheiro" | "cartao" | "pix";
 
@@ -84,5 +92,9 @@ export type Agendamento = {
   forma_pagamento: FormaPagamento | null;
   lembrete_enviado: boolean;
   cancelamento_token: string;
+  cancelado_em: string | null;
+  cancelado_por: "cliente" | "barbearia" | null;
+  confirmacao_enviada: boolean;
+  presenca_confirmada_em: string | null;
   criado_em: string;
 };

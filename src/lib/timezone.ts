@@ -21,17 +21,21 @@ export function diaSemanaDeData(dataISO: string): number {
   return new Date(`${dataISO}T00:00:00Z`).getUTCDay();
 }
 
-// "YYYY-MM-DD" de hoje no fuso de Brasília, independente de onde o
+// "YYYY-MM-DD" de um instante no fuso de Brasília, independente de onde o
 // código está rodando.
-export function hojeISOBrasilia(): string {
+export function dataISOBrasilia(data: Date): string {
   const partes = new Intl.DateTimeFormat("en-CA", {
     timeZone: FUSO_BRASILIA,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(new Date());
+  }).formatToParts(data);
   const obter = (tipo: string) => partes.find((p) => p.type === tipo)?.value;
   return `${obter("year")}-${obter("month")}-${obter("day")}`;
+}
+
+export function hojeISOBrasilia(): string {
+  return dataISOBrasilia(new Date());
 }
 
 export function formatarHoraBrasilia(data: Date): string {
