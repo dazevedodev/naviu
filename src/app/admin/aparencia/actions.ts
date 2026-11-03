@@ -7,20 +7,11 @@ import { validarImagem, enviarImagem } from "@/lib/upload-imagem";
 import { enviarEmailLeadSitePersonalizado } from "@/lib/email";
 
 export async function salvarAparencia(formData: FormData) {
+  // O visual da página é o mesmo para todas as barbearias (vermelho Naviu);
+  // a barbearia escolhe só a capa e a foto de perfil.
   const barbearia = await getBarbeariaAtual();
-  const corPrimaria = String(formData.get("cor_primaria") ?? "").trim();
-  const corFundoInformada = String(formData.get("cor_fundo") ?? "").trim();
-  const descricao = String(formData.get("descricao") ?? "").trim();
   const logo = formData.get("logo") as File | null;
   const capa = formData.get("capa") as File | null;
-
-  if (!/^#[0-9a-fA-F]{6}$/.test(corPrimaria)) {
-    return { error: "Cor da marca inválida." };
-  }
-  // Cor de fundo é opcional — campo vazio significa "usar o padrão".
-  if (corFundoInformada && !/^#[0-9a-fA-F]{6}$/.test(corFundoInformada)) {
-    return { error: "Cor de fundo inválida." };
-  }
 
   const supabase = await createClient();
   let logoUrl = barbearia.logo_url;
@@ -48,20 +39,11 @@ export async function salvarAparencia(formData: FormData) {
     capaUrl = url;
   }
 
-  const tema = { ...barbearia.tema, cor_primaria: corPrimaria };
-  if (corFundoInformada) {
-    tema.cor_fundo = corFundoInformada;
-  } else {
-    delete tema.cor_fundo;
-  }
-
   const { error } = await supabase
     .from("barbearias")
     .update({
       logo_url: logoUrl,
       capa_url: capaUrl,
-      descricao: descricao || null,
-      tema,
     })
     .eq("id", barbearia.id);
 

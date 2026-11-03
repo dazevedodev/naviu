@@ -71,28 +71,23 @@ export function ChatAgente({ slug }: { slug: string }) {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white text-sm font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
+        className="flex h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-white/70 text-base font-semibold text-white transition-colors hover:border-white hover:bg-white hover:text-navalha focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
-        <span
-          aria-hidden
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: "var(--cor-marca)" }}
-        />
         Agendar conversando
       </button>
     );
   }
 
   return (
-    <div className="mb-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+    <div className="overflow-hidden rounded-3xl bg-white text-tinta shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
+      <div className="flex items-center justify-between gap-3 bg-tinta px-4 py-3 text-white">
         <div>
-          <p className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Recepção virtual</p>
-          <p className="text-xs text-zinc-500">Diga o que quer e quando. Eu vejo a agenda e marco.</p>
+          <p className="font-display text-sm font-semibold">Recepção virtual</p>
+          <p className="text-xs text-white/60">Diga o serviço e quando. Eu vejo a agenda e marco.</p>
         </div>
         <button
           onClick={() => setAberto(false)}
-          className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="shrink-0 rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium hover:bg-white/25"
         >
           Fechar
         </button>
@@ -105,7 +100,7 @@ export function ChatAgente({ slug }: { slug: string }) {
               <button
                 key={s}
                 onClick={() => enviar(s)}
-                className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs text-zinc-700 hover:border-zinc-400 dark:border-zinc-800 dark:text-zinc-300"
+                className="rounded-full border border-black/10 px-3 py-2 text-sm text-tinta hover:border-navalha"
               >
                 {s}
               </button>
@@ -116,25 +111,24 @@ export function ChatAgente({ slug }: { slug: string }) {
         {bolhas.map((b, i) => (
           <p
             key={i}
-            className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2 text-sm ${
+            className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-[15px] leading-snug ${
               b.autor === "cliente"
-                ? "self-end text-white"
-                : "self-start bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
+                ? "self-end rounded-br-md bg-navalha text-white"
+                : "self-start rounded-bl-md bg-[#F6F1F1] text-tinta"
             }`}
-            style={b.autor === "cliente" ? { backgroundColor: "var(--cor-marca)" } : undefined}
           >
             {b.texto}
           </p>
         ))}
 
         {enviando && (
-          <p className="self-start rounded-2xl bg-zinc-100 px-3.5 py-2 text-sm text-zinc-500 dark:bg-zinc-900">
+          <p className="self-start rounded-2xl rounded-bl-md bg-[#F6F1F1] px-3.5 py-2.5 text-sm text-aco">
             Vendo a agenda…
           </p>
         )}
 
         {agendamento && (
-          <div className="mt-1 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+          <div className="mt-1 rounded-2xl bg-tinta p-4 text-sm text-white">
             <p className="font-semibold">Horário marcado</p>
             <p>
               {agendamento.servico} com {agendamento.barbeiro}, {agendamento.data} às{" "}
@@ -145,14 +139,14 @@ export function ChatAgente({ slug }: { slug: string }) {
         <div ref={fimRef} />
       </div>
 
-      {erro && <p className="px-4 pb-2 text-xs text-red-600">{erro}</p>}
+      {erro && <p className="px-4 pb-2 text-sm text-navalha">{erro}</p>}
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
           enviar(texto);
         }}
-        className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
+        className="flex gap-2 border-t border-black/10 p-3"
       >
         <input
           value={texto}
@@ -160,13 +154,12 @@ export function ChatAgente({ slug }: { slug: string }) {
           maxLength={600}
           placeholder="Quero cortar sexta à tarde"
           aria-label="Sua mensagem"
-          className="h-10 min-w-0 flex-1 rounded-full border border-zinc-300 bg-transparent px-4 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700"
+          className="h-11 min-w-0 flex-1 rounded-full border border-black/10 bg-[#F6F1F1] px-4 text-base outline-none placeholder:text-aco/70 focus:border-navalha focus:bg-white"
         />
         <button
           type="submit"
           disabled={enviando}
-          className="h-10 shrink-0 rounded-full px-4 text-sm font-medium text-white disabled:opacity-60"
-          style={{ backgroundColor: "var(--cor-marca)" }}
+          className="h-11 shrink-0 rounded-full bg-navalha px-5 text-sm font-semibold text-white hover:bg-navalha-escuro disabled:opacity-60"
         >
           Enviar
         </button>

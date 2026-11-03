@@ -1,15 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { RelogioNaviu } from "@/components/relogio-naviu";
 import type { Barbearia, Barbeiro, Servico } from "@/lib/types";
 
-type Passo = "servico" | "barbeiro" | "data" | "horario" | "dados" | "confirmado";
+type Passo = "servico" | "barbeiro" | "data" | "dados" | "confirmado";
 
 type SlotComBarbeiro = { iso: string; barbeiroId: string };
 
 const QUALQUER = "qualquer";
 
 const FUSO_BRASILIA = "America/Sao_Paulo";
+
+// Quantos dias aparecem na fileira de datas.
+const DIAS_VISIVEIS = 21;
+
+const SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
 // Data de "hoje" no fuso de Brasília, não no fuso do dispositivo do
 // visitante — o que importa aqui é o dia da barbearia, não de onde o
@@ -23,6 +29,31 @@ function hojeISO() {
   }).formatToParts(new Date());
   const obter = (tipo: string) => partes.find((p) => p.type === tipo)?.value;
   return `${obter("year")}-${obter("month")}-${obter("day")}`;
+}
+
+// Próximos dias a partir de hoje, como datas-calendário (sem fuso).
+function proximosDias(inicio: string) {
+  return Array.from({ length: DIAS_VISIVEIS }, (_, i) => {
+    const d = new Date(`${inicio}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + i);
+    return {
+      iso: d.toISOString().slice(0, 10),
+      semana: i === 0 ? "hoje" : SEMANA[d.getUTCDay()],
+      dia: d.getUTCDate(),
+    };
+  });
+}
+
+const preco = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const OPCAO =
+  "flex w-full items-center justify-between gap-3 rounded-2xl border border-black/10 p-4 text-left transition-colors hover:border-navalha focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navalha";
+const CAMPO =
+  "h-12 rounded-xl border border-black/10 bg-[#F6F1F1] px-4 text-base outline-none placeholder:text-aco/70 focus:border-navalha focus:bg-white";
+const VOLTAR = "self-start text-sm font-medium text-aco hover:text-tinta";
+
+function Titulo({ children }: { children: React.ReactNode }) {
+  return <h2 className="font-display text-xl font-semibold tracking-tight">{children}</h2>;
 }
 
 export function BookingFlow({
@@ -42,6 +73,7 @@ export function BookingFlow({
     barbeiroPreSelecionado?.id ?? null,
   );
   const [data, setData] = useState(hojeISO());
+  const dias = useMemo(() => proximosDias(hojeISO()), []);
   const [slots, setSlots] = useState<SlotComBarbeiro[]>([]);
   const [carregandoSlots, setCarregandoSlots] = useState(false);
   const [slotEscolhido, setSlotEscolhido] = useState<SlotComBarbeiro | null>(null);
@@ -156,137 +188,173 @@ export function BookingFlow({
 
   if (servicos.length === 0) {
     return (
-      <p className="text-center text-sm text-zinc-500">
+      <p className="text-center text-sm text-aco">
         Essa barbearia ainda não cadastrou serviços disponíveis.
       </p>
     );
   }
 
+  const nomeBarbeiro = (id: string) => barbeiros.find((b) => b.id === id)?.nome;
+  const resumo = [
+    servico?.nome,
+    barbeiroSelecionado && barbeiroSelecionado !== QUALQUER
+      ? `com ${nomeBarbeiro(barbeiroSelecionado)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+    <div>
       {passo === "servico" && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {barbeiroPreSelecionado && (
-            <p className="mb-1 text-xs text-zinc-500">
-              Agendando com <strong>{barbeiroPreSelecionado.nome}</strong>
+            <p className="text-sm text-aco">
+              Agendando com <strong className="text-tinta">{barbeiroPreSelecionado.nome}</strong>
             </p>
           )}
-          <h2 className="mb-2 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-            Escolha o serviço
-          </h2>
-          {servicos.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => {
-                setServicoId(s.id);
-                if (barbeiroPreSelecionado) {
-                  setPasso("data");
-                  buscarSlots(data, barbeiroPreSelecionado.id, s.id);
-                } else {
-                  setPasso("barbeiro");
-                }
-              }}
-              className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 p-3 text-left text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
-            >
-              <span>
-                {s.nome}
-                {s.legenda && (
-                  <span className="mt-0.5 block text-xs text-zinc-500">{s.legenda}</span>
-                )}
-              </span>
-              <span className="shrink-0 text-zinc-500">
-                {s.mostrar_duracao && `${s.duracao_min} min · `}
-                {s.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </span>
-            </button>
-          ))}
+          <Titulo>Qual serviço?</Titulo>
+          <div className="mt-1 flex flex-col gap-2">
+            {servicos.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => {
+                  setServicoId(s.id);
+                  if (barbeiroPreSelecionado) {
+                    setPasso("data");
+                    buscarSlots(data, barbeiroPreSelecionado.id, s.id);
+                  } else {
+                    setPasso("barbeiro");
+                  }
+                }}
+                className={OPCAO}
+              >
+                <span>
+                  <span className="block font-semibold">{s.nome}</span>
+                  {s.legenda && <span className="mt-0.5 block text-sm text-aco">{s.legenda}</span>}
+                  {s.mostrar_duracao && (
+                    <span className="mt-0.5 block text-xs text-aco">{s.duracao_min} min</span>
+                  )}
+                </span>
+                <span className="shrink-0 font-semibold tabular-nums">{preco(s.preco)}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {passo === "barbeiro" && (
-        <div className="flex flex-col gap-2">
-          <h2 className="mb-2 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-            Escolha o barbeiro
-          </h2>
-          <button
-            onClick={() => {
-              setBarbeiroSelecionado(QUALQUER);
-              setPasso("data");
-              buscarSlots(data, QUALQUER);
-            }}
-            className="rounded-xl border border-zinc-200 p-3 text-left text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
-          >
-            Qualquer um disponível
-          </button>
-          {barbeiros.map((b) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-aco">{servico?.nome}</p>
+          <Titulo>Com quem?</Titulo>
+          <div className="mt-1 flex flex-col gap-2">
             <button
-              key={b.id}
               onClick={() => {
-                setBarbeiroSelecionado(b.id);
+                setBarbeiroSelecionado(QUALQUER);
                 setPasso("data");
-                buscarSlots(data, b.id);
+                buscarSlots(data, QUALQUER);
               }}
-              className="rounded-xl border border-zinc-200 p-3 text-left text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+              className={OPCAO}
             >
-              {b.nome}
+              <span className="font-semibold">Quem estiver livre</span>
+              <span aria-hidden className="text-navalha">→</span>
             </button>
-          ))}
-          <button
-            onClick={() => setPasso("servico")}
-            className="mt-2 text-left text-xs text-zinc-500 hover:underline"
-          >
-            ← Voltar
+            {barbeiros.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => {
+                  setBarbeiroSelecionado(b.id);
+                  setPasso("data");
+                  buscarSlots(data, b.id);
+                }}
+                className={OPCAO}
+              >
+                <span className="flex items-center gap-3">
+                  {b.foto_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.foto_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6F1F1] font-display text-sm font-semibold text-navalha"
+                    >
+                      {b.nome.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="font-semibold">{b.nome}</span>
+                </span>
+                <span aria-hidden className="text-navalha">→</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setPasso("servico")} className={VOLTAR}>
+            ← Trocar serviço
           </button>
         </div>
       )}
 
       {passo === "data" && (
         <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-            Escolha a data
-          </h2>
-          <input
-            type="date"
-            min={hojeISO()}
-            value={data}
-            onChange={(e) => {
-              setData(e.target.value);
-              buscarSlots(e.target.value, barbeiroSelecionado);
-            }}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
+          <p className="text-sm text-aco">{resumo}</p>
+          <Titulo>Quando?</Titulo>
 
-          <h3 className="mt-2 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-            Horários disponíveis
-          </h3>
-          {carregandoSlots && <p className="text-sm text-zinc-500">Carregando...</p>}
-          {!carregandoSlots && slots.length === 0 && (
-            <p className="text-sm text-zinc-500">Nenhum horário livre nesse dia.</p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            {slots.map((s) => (
-              <button
-                key={s.iso + s.barbeiroId}
-                onClick={() => {
-                  setSlotEscolhido(s);
-                  setPasso("dados");
-                }}
-                className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
-              >
-                {formatarHorarioSlot(s.iso)}
-              </button>
-            ))}
+          <div className="-mx-5 mt-1 flex gap-2 overflow-x-auto px-5 pb-2 [scrollbar-width:none]">
+            {dias.map((d) => {
+              const ativo = d.iso === data;
+              return (
+                <button
+                  key={d.iso}
+                  aria-pressed={ativo}
+                  onClick={() => {
+                    setData(d.iso);
+                    buscarSlots(d.iso, barbeiroSelecionado);
+                  }}
+                  className={`flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navalha ${
+                    ativo
+                      ? "bg-navalha text-white"
+                      : "border border-black/10 text-tinta hover:border-navalha"
+                  }`}
+                >
+                  <span className={`text-xs ${ativo ? "text-rosado" : "text-aco"}`}>{d.semana}</span>
+                  <span className="font-display text-lg font-semibold">{d.dia}</span>
+                </button>
+              );
+            })}
           </div>
+
+          {carregandoSlots && <p className="py-6 text-center text-sm text-aco">Vendo a agenda…</p>}
+          {!carregandoSlots && slots.length === 0 && (
+            <p className="rounded-2xl bg-[#F6F1F1] p-5 text-center text-sm text-aco">
+              Nenhum horário livre nesse dia. Escolha outro dia acima.
+            </p>
+          )}
+          {!carregandoSlots && slots.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {slots.map((s) => (
+                <button
+                  key={s.iso + s.barbeiroId}
+                  onClick={() => {
+                    setSlotEscolhido(s);
+                    setPasso("dados");
+                  }}
+                  className="h-12 rounded-xl border border-black/10 font-semibold tabular-nums transition-colors hover:border-navalha hover:bg-navalha hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navalha"
+                >
+                  {formatarHorarioSlot(s.iso)}
+                </button>
+              ))}
+            </div>
+          )}
+          {erro && <p className="text-sm text-navalha">{erro}</p>}
           <button
             onClick={() => setPasso(barbeiroPreSelecionado ? "servico" : "barbeiro")}
-            className="mt-2 text-left text-xs text-zinc-500 hover:underline"
+            className={VOLTAR}
           >
             ← Voltar
           </button>
         </div>
       )}
 
-      {passo === "dados" && (
+      {passo === "dados" && slotEscolhido && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -294,96 +362,95 @@ export function BookingFlow({
           }}
           className="flex flex-col gap-3"
         >
-          <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
-            Seus dados
-          </h2>
-          <p className="text-xs text-zinc-500">
-            {servico?.nome} —{" "}
-            {slotEscolhido && (
-              <>
-                {new Date(slotEscolhido.iso).toLocaleDateString("pt-BR", {
-                  dateStyle: "short",
-                  timeZone: FUSO_BRASILIA,
-                })}
-                , {formatarHorarioSlot(slotEscolhido.iso)}
-              </>
-            )}
-          </p>
+          <div className="rounded-2xl bg-navalha p-4 text-white">
+            <p className="font-semibold">{servico?.nome}</p>
+            <p className="text-sm text-rosado">
+              {new Date(slotEscolhido.iso).toLocaleDateString("pt-BR", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                timeZone: FUSO_BRASILIA,
+              })}{" "}
+              · {formatarHorarioSlot(slotEscolhido.iso)} · com {nomeBarbeiro(slotEscolhido.barbeiroId)}
+            </p>
+          </div>
 
+          <Titulo>Seus dados</Titulo>
           <input
             required
+            autoComplete="name"
             placeholder="Seu nome"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className={CAMPO}
           />
           <input
             required
-            placeholder="WhatsApp (com DDD)"
+            type="tel"
+            autoComplete="tel"
+            placeholder="WhatsApp com DDD"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className={CAMPO}
           />
           <input
             required
             type="email"
+            autoComplete="email"
             placeholder="Seu e-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className={CAMPO}
           />
+          <p className="text-xs text-aco">
+            A confirmação e o link para cancelar chegam por e-mail.
+          </p>
 
-          {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+          {erro && <p className="text-sm text-navalha">{erro}</p>}
 
           <button
             type="submit"
             disabled={enviando}
-            className="rounded-full bg-[var(--cor-marca)] py-2.5 text-sm font-medium text-white disabled:opacity-50"
+            className="mt-1 h-14 rounded-full bg-navalha text-base font-semibold text-white transition-colors hover:bg-navalha-escuro disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navalha"
           >
-            {enviando ? "Agendando..." : "Confirmar agendamento"}
+            {enviando ? "Marcando…" : "Confirmar horário"}
           </button>
-          <button
-            type="button"
-            onClick={() => setPasso("data")}
-            className="text-left text-xs text-zinc-500 hover:underline"
-          >
-            ← Voltar
+          <button type="button" onClick={() => setPasso("data")} className={VOLTAR}>
+            ← Trocar horário
           </button>
         </form>
       )}
 
       {passo === "confirmado" && resultado && slotEscolhido && (
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h2 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
-            Agendamento confirmado!
-          </h2>
+        <div className="flex flex-col items-center gap-4 pt-2 text-center">
+          <RelogioNaviu className="h-20 w-20" titulo="" />
+          <Titulo>Horário marcado</Titulo>
 
-          <div className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-left text-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <p className="font-medium text-zinc-950 dark:text-zinc-50">{servico?.nome}</p>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              com {barbeiros.find((b) => b.id === slotEscolhido.barbeiroId)?.nome}
-            </p>
-            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+          <div className="w-full rounded-2xl bg-[#F6F1F1] p-5 text-left">
+            <p className="font-semibold">{servico?.nome}</p>
+            <p className="text-sm text-aco">com {nomeBarbeiro(slotEscolhido.barbeiroId)}</p>
+            <p className="mt-3 font-display text-lg font-semibold">
               {new Date(slotEscolhido.iso).toLocaleDateString("pt-BR", {
-                dateStyle: "full",
+                weekday: "long",
+                day: "numeric",
+                month: "long",
                 timeZone: FUSO_BRASILIA,
-              })}{" "}
-              às {formatarHorarioSlot(slotEscolhido.iso)}
+              })}
             </p>
-            {barbearia.endereco && (
-              <p className="mt-2 text-zinc-600 dark:text-zinc-400">{barbearia.endereco}</p>
-            )}
+            <p className="font-display text-3xl font-semibold text-navalha tabular-nums">
+              {formatarHorarioSlot(slotEscolhido.iso)}
+            </p>
+            {barbearia.endereco && <p className="mt-3 text-sm text-aco">{barbearia.endereco}</p>}
           </div>
 
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Te esperamos! Enviamos a confirmação e as instruções de
-            cancelamento pro seu e-mail.
+          <p className="text-sm text-aco">
+            Mandamos a confirmação e o link para cancelar no seu e-mail.
           </p>
           <a
             href={`/api/agendamentos/${resultado.id}/calendario.ics`}
-            className="text-sm font-medium text-zinc-950 underline dark:text-zinc-50"
+            className="flex h-12 w-full items-center justify-center rounded-full border border-navalha font-semibold text-navalha transition-colors hover:bg-navalha hover:text-white"
           >
-            Adicionar à agenda
+            Salvar na agenda do celular
           </a>
         </div>
       )}
