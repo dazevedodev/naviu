@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -67,6 +68,14 @@ export default function LoginPage() {
           ← Voltar
         </Link>
 
+        <Image
+          src="/marca/naviu-logo.svg"
+          alt="Naviu"
+          width={114}
+          height={32}
+          className="mb-6"
+          unoptimized
+        />
         <h1 className="mb-6 text-xl font-semibold text-zinc-950 dark:text-zinc-50">
           Entrar no Naviu
         </h1>
@@ -113,7 +122,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-zinc-950 py-2.5 text-sm font-medium text-zinc-50 transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          className="w-full rounded-full bg-[#C1272D] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#A51F25] disabled:opacity-50"
         >
           {loading ? "Entrando..." : "Entrar"}
         </button>

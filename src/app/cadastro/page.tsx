@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -51,6 +52,14 @@ export default function CadastroPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
       >
+        <Image
+          src="/marca/naviu-logo.svg"
+          alt="Naviu"
+          width={114}
+          height={32}
+          className="mb-6"
+          unoptimized
+        />
         <h1 className="mb-1 text-xl font-semibold text-zinc-950 dark:text-zinc-50">
           Criar conta grátis
         </h1>
@@ -108,7 +117,7 @@ export default function CadastroPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-zinc-950 py-2.5 text-sm font-medium text-zinc-50 transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          className="w-full rounded-full bg-[#C1272D] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#A51F25] disabled:opacity-50"
         >
           {loading ? "Criando..." : "Criar conta"}
         </button>

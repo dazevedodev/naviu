@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Big_Shoulders,
@@ -37,8 +38,20 @@ const TABELA: { servico: string; detalhe: string; soNoPlano?: string }[] = [
     detalhe: "O cliente escolhe barbeiro, serviço e horário sem te chamar no WhatsApp.",
   },
   {
+    servico: "Recepção com IA",
+    detalhe: "O cliente escreve “quero cortar sexta à tarde” e ela acha o horário e marca.",
+  },
+  {
     servico: "Confirmação e lembrete",
-    detalhe: "E-mail na hora que ele marca e outro 1h antes do corte. Sozinho.",
+    detalhe: "Pede pro cliente confirmar na véspera e lembra 1h antes do corte. Sozinho.",
+  },
+  {
+    servico: "Lista de espera",
+    detalhe: "Dia cheio? Quando alguém cancela, quem estava esperando é avisado na hora.",
+  },
+  {
+    servico: "Histórico de faltas",
+    detalhe: "Você vê no painel quem costuma faltar ou desmarcar em cima da hora.",
   },
   {
     servico: "Um link pra cada barbeiro",
@@ -84,16 +97,16 @@ function PrevisaoAgendamento() {
   return (
     <figure
       aria-label="Exemplo da página de agendamento de uma barbearia no Naviu"
-      className="relative w-full max-w-sm rounded-[28px] border border-[#2A5446] bg-[#F1F2EE] p-5 text-[#0E2A23] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+      className="relative w-full max-w-sm rounded-[28px] bg-[#F7F2EC] p-5 text-[#1A1213] shadow-[0_30px_80px_-20px_rgba(40,0,0,0.55)]"
     >
-      <p className="font-[family-name:var(--font-mono-naviu)] text-[11px] text-[#5C6F66]">
+      <p className="font-[family-name:var(--font-mono-naviu)] text-[11px] text-[#6E6264]">
         naviu.app.br/b/barbearia-do-ze
       </p>
       <p className="mt-2 font-[family-name:var(--font-cursiva)] text-4xl leading-none text-[#C1272D]">
         Barbearia do Zé
       </p>
 
-      <ul className="mt-5 divide-y divide-[#0E2A23]/10 border-y border-[#0E2A23]/10 text-sm">
+      <ul className="mt-5 divide-y divide-[#1A1213]/10 border-y border-[#1A1213]/10 text-sm">
         {[
           ["Corte", "R$ 40"],
           ["Corte + barba", "R$ 60"],
@@ -104,7 +117,7 @@ function PrevisaoAgendamento() {
             <li
               key={nome}
               className={`flex items-center justify-between px-2 py-2.5 ${
-                escolhido ? "bg-[#0E2A23] font-semibold text-[#F1F2EE]" : ""
+                escolhido ? "bg-[#1A1213] font-semibold text-[#F7F2EC]" : ""
               }`}
             >
               <span>{nome}</span>
@@ -114,7 +127,7 @@ function PrevisaoAgendamento() {
         })}
       </ul>
 
-      <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-[#5C6F66]">
+      <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-[#6E6264]">
         Sábado, 24 · com o Léo
       </p>
       <div className="mt-2 grid grid-cols-3 gap-2 font-[family-name:var(--font-mono-naviu)] text-sm">
@@ -123,10 +136,10 @@ function PrevisaoAgendamento() {
             key={h.hora}
             className={`rounded-lg py-2 text-center ${
               h.estado === "escolhido"
-                ? "bg-[#C9A24B] font-medium text-[#0E2A23]"
+                ? "bg-[#C1272D] font-medium text-white"
                 : h.estado === "ocupado"
-                  ? "text-[#0E2A23]/30 line-through"
-                  : "border border-[#0E2A23]/20"
+                  ? "text-[#1A1213]/30 line-through"
+                  : "border border-[#1A1213]/20"
             }`}
           >
             {h.hora}
@@ -134,7 +147,7 @@ function PrevisaoAgendamento() {
         ))}
       </div>
 
-      <div className="mt-5 rounded-full bg-[#0E2A23] py-3 text-center text-sm font-semibold text-[#F1F2EE]">
+      <div className="mt-5 rounded-full bg-[#1A1213] py-3 text-center text-sm font-semibold text-[#F7F2EC]">
         Confirmar horário
       </div>
     </figure>
@@ -144,15 +157,20 @@ function PrevisaoAgendamento() {
 export default function Home() {
   return (
     <div
-      className={`${letreiro.variable} ${corpo.variable} ${mono.variable} ${cursiva.variable} flex flex-1 flex-col bg-[#0E2A23] font-[family-name:var(--font-corpo)] text-[#F1F2EE]`}
+      className={`${letreiro.variable} ${corpo.variable} ${mono.variable} ${cursiva.variable} flex flex-1 flex-col bg-[#C1272D] font-[family-name:var(--font-corpo)] text-[#FFF8F3]`}
     >
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
-        <span className="font-[family-name:var(--font-letreiro)] text-3xl font-black uppercase tracking-wide">
-          Naviu
-        </span>
+        <Image
+          src="/marca/naviu-logo-branco.svg"
+          alt="Naviu"
+          width={142}
+          height={40}
+          priority
+          unoptimized
+        />
         <Link
           href="/login"
-          className="rounded-full px-3 py-2 text-sm font-medium text-[#C9D6CF] hover:text-[#F1F2EE] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A24B]"
+          className="rounded-full px-3 py-2 text-sm font-medium text-[#FBDAD6] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Já sou cliente
         </Link>
@@ -162,16 +180,16 @@ export default function Home() {
         {/* Hero */}
         <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pb-20 pt-8 sm:px-8 lg:grid-cols-[1fr_auto] lg:gap-16 lg:pt-14">
           <div>
-            <p className="mb-5 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-[#C9A24B]">
-              <span aria-hidden className="h-px w-8 bg-[#C9A24B]" />
+            <p className="mb-5 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-[#1A1213]">
+              <span aria-hidden className="h-px w-8 bg-[#1A1213]" />
               Agendamento pra barbearia
             </p>
             <h1 className="font-[family-name:var(--font-letreiro)] text-[clamp(3.5rem,11vw,8rem)] font-black uppercase leading-[0.86] tracking-tight">
               Cadeira cheia.
               <br />
-              <span className="text-[#C9A24B]">Agenda</span> em ordem.
+              <span className="text-[#1A1213]">Agenda</span> em ordem.
             </h1>
-            <p className="mt-7 max-w-lg text-lg leading-8 text-[#C9D6CF]">
+            <p className="mt-7 max-w-lg text-lg leading-8 text-[#FBDAD6]">
               O cliente marca o corte pelo seu link, a qualquer hora. Você vê o
               dia de cada barbeiro e o lembrete sai sozinho, sem você parar a
               máquina pra responder mensagem.
@@ -179,13 +197,13 @@ export default function Home() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <a
                 href="#planos"
-                className="flex h-13 items-center justify-center rounded-full bg-[#C9A24B] px-8 font-semibold text-[#0E2A23] transition-colors hover:bg-[#D9B862] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F1F2EE]"
+                className="flex h-13 items-center justify-center rounded-full bg-[#FFF8F3] px-8 font-semibold text-[#C1272D] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 Ver planos
               </a>
               <a
                 href="#como-funciona"
-                className="flex h-13 items-center justify-center rounded-full border border-[#2A5446] px-8 font-semibold transition-colors hover:border-[#C9A24B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A24B]"
+                className="flex h-13 items-center justify-center rounded-full border border-[#FFF8F3]/40 px-8 font-semibold transition-colors hover:border-[#FFF8F3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 Como funciona
               </a>
@@ -194,21 +212,21 @@ export default function Home() {
 
           <div className="flex items-stretch justify-center gap-5 sm:gap-8">
             <div className="flex flex-col items-center" aria-hidden>
-              <span className="h-4 w-9 rounded-t-full bg-[#C9A24B]" />
-              <span className="poste-barbeiro w-6 flex-1 border-x-4 border-[#C9A24B]/70" />
-              <span className="h-4 w-9 rounded-b-full bg-[#C9A24B]" />
+              <span className="h-4 w-9 rounded-t-full bg-[#1A1213]" />
+              <span className="poste-barbeiro w-6 flex-1 border-x-4 border-[#1A1213]" />
+              <span className="h-4 w-9 rounded-b-full bg-[#1A1213]" />
             </div>
             <PrevisaoAgendamento />
           </div>
         </section>
 
         {/* Tabela de serviços */}
-        <section className="bg-[#F1F2EE] text-[#0E2A23]">
+        <section className="bg-[#F7F2EC] text-[#1A1213]">
           <div className="mx-auto w-full max-w-4xl px-4 py-20 sm:px-8">
             <h2 className="text-center font-[family-name:var(--font-letreiro)] text-5xl font-black uppercase sm:text-6xl">
               Tabela de serviços
             </h2>
-            <p className="mt-3 text-center text-[#4A5D54]">
+            <p className="mt-3 text-center text-[#5E5254]">
               O que o Naviu faz pela sua barbearia.
             </p>
             <ul className="mt-12 flex flex-col gap-7">
@@ -220,13 +238,13 @@ export default function Home() {
                     </h3>
                     <span
                       aria-hidden
-                      className="mb-1.5 min-w-6 flex-1 border-b-2 border-dotted border-[#0E2A23]/30"
+                      className="mb-1.5 min-w-6 flex-1 border-b-2 border-dotted border-[#1A1213]/30"
                     />
-                    <span className="font-[family-name:var(--font-mono-naviu)] text-sm shrink-0 font-medium uppercase text-[#A6831F]">
+                    <span className="font-[family-name:var(--font-mono-naviu)] text-sm shrink-0 font-medium uppercase text-[#C1272D]">
                       {item.soNoPlano ? `plano ${item.soNoPlano}` : "incluso"}
                     </span>
                   </div>
-                  <p className="mt-1 max-w-xl text-[#4A5D54]">{item.detalhe}</p>
+                  <p className="mt-1 max-w-xl text-[#5E5254]">{item.detalhe}</p>
                 </li>
               ))}
             </ul>
@@ -243,12 +261,12 @@ export default function Home() {
           </h2>
           <ol className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {PASSOS.map((passo, i) => (
-              <li key={passo.titulo} className="border-t-2 border-[#C9A24B] pt-5">
-                <span className="font-[family-name:var(--font-mono-naviu)] text-sm text-[#C9A24B]">
+              <li key={passo.titulo} className="border-t-2 border-[#FFF8F3] pt-5">
+                <span className="font-[family-name:var(--font-mono-naviu)] text-sm text-[#1A1213]">
                   Passo {i + 1}
                 </span>
                 <h3 className="mt-2 text-xl font-bold">{passo.titulo}</h3>
-                <p className="mt-2 text-[#C9D6CF]">{passo.texto}</p>
+                <p className="mt-2 text-[#FBDAD6]">{passo.texto}</p>
               </li>
             ))}
           </ol>
@@ -263,13 +281,13 @@ export default function Home() {
         {/* Planos */}
         <section
           id="planos"
-          className="border-t border-[#2A5446] bg-[#0A221C] scroll-mt-0"
+          className="bg-[#1A1213] scroll-mt-0"
         >
           <div className="mx-auto w-full max-w-4xl px-4 py-20 sm:px-8">
             <h2 className="text-center font-[family-name:var(--font-letreiro)] text-5xl font-black uppercase sm:text-6xl">
               Planos
             </h2>
-            <p className="mt-3 text-center text-[#C9D6CF]">
+            <p className="mt-3 text-center text-[#CFC3C4]">
               {DIAS_TESTE} dias grátis, sem cartão. Sem fidelidade: cancele quando quiser.
             </p>
             <div className="mt-12 grid gap-6 sm:grid-cols-2">
@@ -278,8 +296,8 @@ export default function Home() {
                   key={plano.id}
                   className={`flex flex-col rounded-3xl p-7 ${
                     plano.destaque
-                      ? "bg-[#F1F2EE] text-[#0E2A23]"
-                      : "border border-[#2A5446] bg-[#0E2A23]"
+                      ? "bg-[#F7F2EC] text-[#1A1213]"
+                      : "border border-white/15 bg-[#241A1B]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -287,7 +305,7 @@ export default function Home() {
                       {plano.nome}
                     </h3>
                     {plano.destaque && (
-                      <span className="rounded-full bg-[#C1272D] px-3 py-1 text-xs font-semibold text-[#F1F2EE]">
+                      <span className="rounded-full bg-[#C1272D] px-3 py-1 text-xs font-semibold text-white">
                         Mais escolhido
                       </span>
                     )}
@@ -297,12 +315,12 @@ export default function Home() {
                   </p>
                   <ul
                     className={`mt-6 mb-8 flex flex-1 flex-col gap-2.5 text-sm ${
-                      plano.destaque ? "text-[#33463D]" : "text-[#C9D6CF]"
+                      plano.destaque ? "text-[#4A3E40]" : "text-[#CFC3C4]"
                     }`}
                   >
                     {plano.recursos.map((r) => (
                       <li key={r} className="flex gap-2.5">
-                        <span aria-hidden className="text-[#C9A24B]">
+                        <span aria-hidden className="text-[#C1272D]">
                           ✓
                         </span>
                         {r}
@@ -311,10 +329,10 @@ export default function Home() {
                   </ul>
                   <Link
                     href="/cadastro"
-                    className={`flex h-12 items-center justify-center rounded-full px-6 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A24B] ${
+                    className={`flex h-12 items-center justify-center rounded-full px-6 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C1272D] ${
                       plano.destaque
-                        ? "bg-[#0E2A23] text-[#F1F2EE] hover:bg-[#173F33]"
-                        : "border border-[#C9A24B] text-[#F1F2EE] hover:bg-[#C9A24B] hover:text-[#0E2A23]"
+                        ? "bg-[#C1272D] text-white hover:bg-[#A51F25]"
+                        : "border border-[#C1272D] text-[#FFF8F3] hover:bg-[#C1272D]"
                     }`}
                   >
                     Testar {DIAS_TESTE} dias grátis
@@ -322,9 +340,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="mt-10 text-center text-sm text-[#C9D6CF]">
+            <p className="mt-10 text-center text-sm text-[#CFC3C4]">
               Já tem conta?{" "}
-              <Link href="/login" className="font-semibold text-[#C9A24B] hover:underline">
+              <Link href="/login" className="font-semibold text-white underline-offset-4 hover:underline">
                 Entrar no painel
               </Link>
             </p>
@@ -332,10 +350,8 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="flex items-center justify-between gap-4 border-t border-[#2A5446] px-4 py-6 text-sm text-[#8FA79B] sm:px-8">
-        <span className="font-[family-name:var(--font-letreiro)] text-lg font-black uppercase text-[#F1F2EE]">
-          Naviu
-        </span>
+      <footer className="flex items-center justify-between gap-4 bg-[#1A1213] px-4 py-6 text-sm text-[#CFC3C4] sm:px-8">
+        <Image src="/marca/naviu-logo-branco.svg" alt="Naviu" width={100} height={28} unoptimized />
         <span>naviu.app.br</span>
       </footer>
     </div>

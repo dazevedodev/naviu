@@ -30,9 +30,9 @@ body {
   background-image: repeating-linear-gradient(
     -45deg,
     #c1272d 0 14px,
-    #f1f2ee 14px 28px,
-    #0e2a23 28px 34px,
-    #f1f2ee 34px 48px
+    #fff8f3 14px 28px,
+    #1a1213 28px 34px,
+    #fff8f3 34px 48px
   );
   animation: poste-gira 2.4s linear infinite;
 }
