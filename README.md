@@ -2,7 +2,7 @@
 
 **Agendamento online para barbearias.** O cliente marca o horário sozinho, pelo link da barbearia, e recebe confirmação e lembrete por e-mail.
 
-No ar em **[naviu.vercel.app](https://naviu.vercel.app)**
+No ar em **[naviu.app.br](https://naviu.app.br)**
 
 ![Página inicial do Naviu com o link de agendamento de uma barbearia](docs/inicio.webp)
 
