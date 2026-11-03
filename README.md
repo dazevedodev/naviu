@@ -1,5 +1,6 @@
 # Naviu
-n[![CI](https://github.com/dazevedodev/naviu/actions/workflows/ci.yml/badge.svg)](https://github.com/dazevedodev/naviu/actions/workflows/ci.yml)
+
+[![CI](https://github.com/dazevedodev/naviu/actions/workflows/ci.yml/badge.svg)](https://github.com/dazevedodev/naviu/actions/workflows/ci.yml)
 
 **Agendamento online para barbearias.** O cliente marca o horário sozinho, pelo link da barbearia, e recebe confirmação e lembrete por e-mail.
 
