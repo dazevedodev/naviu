@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 456 128" role="img" aria-label="Naviu"><title>Naviu</title>
+<g><defs><mask id="ml" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+<rect x="54" y="13" width="20" height="24" rx="10" fill="#fff"/>
+<circle cx="64" cy="23" r="4.2" fill="#000"/>
+<circle cx="64" cy="70" r="44" fill="#fff"/>
+<circle cx="64" cy="70" r="37.5" fill="none" stroke="#000" stroke-width="2.5"/>
+<path d="M-2 0V-23Q-2-24 -1-24H.2Q3.2-24 3.2-21V-10.1Q3.2-7.6 .4-6.6V0Z" transform="translate(64 70) rotate(-58)" fill="#000"/>
+<path d="M-2 0V-32Q-2-33 -1-33H.2Q3.2-33 3.2-30V-13.9Q3.2-11.4 .4-10.4V0Z" transform="translate(64 70) rotate(42) scale(-1 1)" fill="#000"/>
+<circle cx="64" cy="70" r="3.2" fill="#000"/>
+</mask></defs>
+<rect width="128" height="128" fill="#C1272D" mask="url(#ml)"/></g>
+<g transform="translate(152 -54.0) scale(1.55)"><g fill="none" stroke="#C1272D" stroke-width="9">
+<path d="M4.5 100V60M4.5 80.5A16 16 0 0 1 36.5 80.5V100"/>
+<circle cx="69" cy="80" r="15.5"/><path d="M84.5 60V100"/>
+<path d="M143.5 60V100"/>
+<path d="M158 60V79.5A16 16 0 0 0 190 79.5V60M190 79.5V100"/>
+</g>
+<mask id="mv" maskUnits="userSpaceOnUse" x="80" y="40" width="60" height="70">
+<rect x="80" y="40" width="60" height="70" fill="#fff"/><circle cx="113" cy="94" r="1.9" fill="#000"/>
+</mask>
+<g mask="url(#mv)" fill="#C1272D">
+<path d="M98.5 64L113 94" stroke="#C1272D" stroke-width="8" stroke-linecap="round"/>
+<path d="M-2.5 0V-34.5Q-2.5-36-1-36H3Q7.5-36 7.5-31.5Q6.5-21 7.5-12Q7.5-9 2.5-8V0Z" transform="translate(113 94) rotate(21)"/>
+<circle cx="113" cy="94" r="4"/>
+</g></g>
+</svg>

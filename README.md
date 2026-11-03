@@ -52,7 +52,7 @@ npm install
 npm run dev
 ```
 
-Copie `.env.local.example` para `.env.local` e preencha com as chaves do seu projeto Supabase, do Resend e do Asaas. Rode `supabase/schema.sql` e depois as migrações de `supabase/migrations/`, em ordem, no SQL Editor do Supabase.
+Copie `.env.local.example` para `.env.local` e preencha com as chaves do seu projeto Supabase, do Resend e do Asaas. Num projeto Supabase novo, rode `supabase/instalacao-completa.sql` no SQL Editor (de uma vez só). Num banco que já existe, rode só as migrações novas de `supabase/migrations/`, em ordem.
 
 ## Testes
 

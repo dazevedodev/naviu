@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { acessoLiberado } from "@/lib/assinatura";
 import { buscarDadosBarbearia } from "./dados";
 import { AgendaPausada } from "./agenda-pausada";
+import { ChatAgente } from "./chat-agente";
 
 const COR_PADRAO = "#09090b";
 
@@ -15,8 +16,11 @@ export default async function BarbeariaPublicaPage({
   const dados = await buscarDadosBarbearia(slug);
 
   if (!dados) notFound();
-  const { barbearia, servicos } = dados;
+  const { barbearia, barbeiros, servicos } = dados;
   const corFundo = barbearia.tema?.cor_fundo;
+  // O chat só aparece com a chave da IA configurada e algo para agendar.
+  const agenteLigado =
+    Boolean(process.env.ANTHROPIC_API_KEY) && servicos.length > 0 && barbeiros.length > 0;
 
   return (
     <div
@@ -67,13 +71,16 @@ export default async function BarbeariaPublicaPage({
         </header>
 
         {acessoLiberado(barbearia) ? (
-          <Link
-            href={`/b/${barbearia.slug}/agendar`}
-            className="mb-3 flex h-12 w-full items-center justify-center rounded-full text-sm font-medium text-white"
-            style={{ backgroundColor: "var(--cor-marca)" }}
-          >
-            Agendar horário
-          </Link>
+          <>
+            <Link
+              href={`/b/${barbearia.slug}/agendar`}
+              className="mb-3 flex h-12 w-full items-center justify-center rounded-full text-sm font-medium text-white"
+              style={{ backgroundColor: "var(--cor-marca)" }}
+            >
+              Agendar horário
+            </Link>
+            {agenteLigado && <ChatAgente slug={barbearia.slug} />}
+          </>
         ) : (
           <AgendaPausada />
         )}

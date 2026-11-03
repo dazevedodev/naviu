@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Naviu"><title>Naviu</title>
+<defs><mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+<rect x="54" y="13" width="20" height="24" rx="10" fill="#fff"/>
+<circle cx="64" cy="23" r="4.2" fill="#000"/>
+<circle cx="64" cy="70" r="44" fill="#fff"/>
+<circle cx="64" cy="70" r="37.5" fill="none" stroke="#000" stroke-width="2.5"/>
+<path d="M-2 0V-23Q-2-24 -1-24H.2Q3.2-24 3.2-21V-10.1Q3.2-7.6 .4-6.6V0Z" transform="translate(64 70) rotate(-58)" fill="#000"/>
+<path d="M-2 0V-32Q-2-33 -1-33H.2Q3.2-33 3.2-30V-13.9Q3.2-11.4 .4-10.4V0Z" transform="translate(64 70) rotate(42) scale(-1 1)" fill="#000"/>
+<circle cx="64" cy="70" r="3.2" fill="#000"/>
+</mask></defs>
+<rect width="128" height="128" fill="#FFFFFF" mask="url(#m)"/>
+</svg>
