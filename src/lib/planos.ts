@@ -22,7 +22,7 @@ export const PLANOS: Plano[] = [
     limiteBarbeiros: 1,
     recursos: [
       "1 barbeiro",
-      "Link público de agendamento (ex: naviu.app.br/b/sua-barbearia)",
+      "Link público de agendamento (ex: naviu.app.br/sua-barbearia)",
       "Confirmação e lembrete automáticos por e-mail",
       "Cliente adiciona o horário na agenda dele com 1 toque",
     ],

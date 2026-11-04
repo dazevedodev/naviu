@@ -5,6 +5,14 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_PREFIXES = ["/admin"];
 
 export default async function proxy(request: NextRequest) {
+  // Links antigos das barbearias (naviu.app.br/b/nome) vão para o link curto
+  // (naviu.app.br/nome), com o resto do caminho igual.
+  if (request.nextUrl.pathname.startsWith("/b/")) {
+    const destino = request.nextUrl.clone();
+    destino.pathname = request.nextUrl.pathname.slice(2);
+    return NextResponse.redirect(destino, 308);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

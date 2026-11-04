@@ -170,4 +170,32 @@ describe("gerarSlotsDisponiveis", () => {
 
     expect(slots).toEqual([horario("10:30")]);
   });
+
+  it("libera o horário logo que um atendimento curto termina, fora da grade", () => {
+    // Corte de 10 min às 09:00: às 09:10 já dá para marcar outro.
+    const slots = gerarSlotsDisponiveis({
+      dataISO: SEGUNDA_ISO,
+      diaSemana: 1,
+      duracaoServicoMin: 30,
+      horariosTrabalho: [janelaAutomatica({ hora_fim: "10:30", intervalo_min: 30 })],
+      ocupados: [{ inicio: horario("09:00"), fim: horario("09:10") }],
+    });
+
+    expect(slots).toEqual([horario("09:10"), horario("09:30"), horario("10:00")]);
+  });
+
+  it("não encaixa depois de um atendimento se o serviço não cabe até o próximo", () => {
+    const slots = gerarSlotsDisponiveis({
+      dataISO: SEGUNDA_ISO,
+      diaSemana: 1,
+      duracaoServicoMin: 30,
+      horariosTrabalho: [janelaAutomatica({ hora_fim: "10:00", intervalo_min: 30 })],
+      ocupados: [
+        { inicio: horario("09:00"), fim: horario("09:10") },
+        { inicio: horario("09:30"), fim: horario("10:00") },
+      ],
+    });
+
+    expect(slots).toEqual([]);
+  });
 });

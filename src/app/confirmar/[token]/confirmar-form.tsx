@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
+import { Aviso, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO } from "@/components/tela-agendamento";
 import { confirmarPresencaViaToken } from "./actions";
 
 export function ConfirmarForm({ token }: { token: string }) {
@@ -8,11 +10,7 @@ export function ConfirmarForm({ token }: { token: string }) {
   const [isPending, startTransition] = useTransition();
 
   if (resultado && !resultado.error) {
-    return (
-      <p className="text-sm text-green-700 dark:text-green-400">
-        Presença confirmada. Até lá!
-      </p>
-    );
+    return <Aviso tom="ok">Presença confirmada. Até lá!</Aviso>;
   }
 
   return (
@@ -22,19 +20,14 @@ export function ConfirmarForm({ token }: { token: string }) {
         onClick={() =>
           startTransition(async () => setResultado(await confirmarPresencaViaToken(token)))
         }
-        className="rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+        className={BOTAO_PRINCIPAL}
       >
-        {isPending ? "Confirmando..." : "Confirmar presença"}
+        {isPending ? "Confirmando…" : "Sim, vou"}
       </button>
-      <a
-        href={`/cancelar/${token}`}
-        className="text-center text-sm text-zinc-500 underline hover:text-zinc-700 dark:hover:text-zinc-300"
-      >
+      <Link href={`/cancelar/${token}`} className={BOTAO_SECUNDARIO}>
         Não vou poder ir
-      </a>
-      {resultado?.error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{resultado.error}</p>
-      )}
+      </Link>
+      {resultado?.error && <Aviso tom="erro">{resultado.error}</Aviso>}
     </div>
   );
 }

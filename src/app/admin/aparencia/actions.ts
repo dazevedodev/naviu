@@ -50,8 +50,8 @@ export async function salvarAparencia(formData: FormData) {
   if (error) return { error: "Não foi possível salvar. Tente novamente." };
 
   revalidatePath("/admin/aparencia");
-  revalidatePath(`/b/${barbearia.slug}`);
-  revalidatePath(`/b/${barbearia.slug}/agendar`);
+  revalidatePath(`/${barbearia.slug}`);
+  revalidatePath(`/${barbearia.slug}/agendar`);
   return { error: null };
 }
 

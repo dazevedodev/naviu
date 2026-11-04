@@ -53,6 +53,26 @@ export function DetalhesServicoForm({ servico }: { servico: Servico }) {
       </div>
 
       <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        Categoria
+      </label>
+      <p className="mb-1 text-xs text-zinc-500">
+        Agrupa os serviços na página do cliente. Use o mesmo nome em todos do grupo.
+      </p>
+      <input
+        name="categoria"
+        list="categorias-servico"
+        placeholder="Ex: Cabelo, Barba, Combos"
+        defaultValue={servico.categoria ?? ""}
+        maxLength={40}
+        className="mb-4 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+      />
+      <datalist id="categorias-servico">
+        {["Cabelo", "Barba", "Combos", "Sobrancelha", "Química", "Tratamentos"].map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+
+      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
         Legenda
       </label>
       <p className="mb-1 text-xs text-zinc-500">

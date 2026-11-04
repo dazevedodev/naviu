@@ -37,6 +37,7 @@ export type Servico = {
   legenda: string | null;
   observacao_interna: string | null;
   imagem_url: string | null;
+  categoria: string | null;
 };
 
 export type HorarioTrabalho = {
@@ -66,6 +67,8 @@ export type Cliente = {
   nome: string;
   telefone_whatsapp: string;
   email: string | null;
+  aniversario_dia: number | null;
+  aniversario_mes: number | null;
   criado_em: string;
 };
 

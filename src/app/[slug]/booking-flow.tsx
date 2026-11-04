@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RelogioNaviu } from "@/components/relogio-naviu";
 import type { Barbearia, Barbeiro, Servico } from "@/lib/types";
+import { esquecerCliente, lembrarCliente, clienteLembrado } from "./cliente-lembrado";
 
 type Passo = "servico" | "barbeiro" | "data" | "dados" | "confirmado";
 
@@ -61,14 +62,19 @@ export function BookingFlow({
   barbeiros,
   servicos,
   barbeiroPreSelecionado,
+  servicoInicial,
 }: {
   barbearia: Barbearia;
   barbeiros: Barbeiro[];
   servicos: Servico[];
   barbeiroPreSelecionado?: Barbeiro;
+  /** Serviço já escolhido na página da barbearia (botão "Agendar" do serviço). */
+  servicoInicial?: Servico;
 }) {
-  const [passo, setPasso] = useState<Passo>("servico");
-  const [servicoId, setServicoId] = useState<string | null>(null);
+  const [passo, setPasso] = useState<Passo>(
+    servicoInicial ? (barbeiroPreSelecionado ? "data" : "barbeiro") : "servico",
+  );
+  const [servicoId, setServicoId] = useState<string | null>(servicoInicial?.id ?? null);
   const [barbeiroSelecionado, setBarbeiroSelecionado] = useState<string | null>(
     barbeiroPreSelecionado?.id ?? null,
   );
@@ -77,12 +83,26 @@ export function BookingFlow({
   const [slots, setSlots] = useState<SlotComBarbeiro[]>([]);
   const [carregandoSlots, setCarregandoSlots] = useState(false);
   const [slotEscolhido, setSlotEscolhido] = useState<SlotComBarbeiro | null>(null);
-  const [nome, setNome] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
+  // Quem já agendou neste aparelho não precisa digitar tudo de novo. O
+  // formulário só aparece depois de escolher o horário, então ler o navegador
+  // aqui não muda o HTML inicial.
+  const [nome, setNome] = useState(() => clienteLembrado()?.nome ?? "");
+  const [whatsapp, setWhatsapp] = useState(() => clienteLembrado()?.telefone ?? "");
+  const [email, setEmail] = useState(() => clienteLembrado()?.email ?? "");
+  const [aniversario, setAniversario] = useState("");
+  const [lembrado, setLembrado] = useState(() => clienteLembrado() !== null);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [resultado, setResultado] = useState<{ id: string; status: string } | null>(null);
+
+  // Veio com o serviço escolhido e barbeiro fixo: já abre nos horários.
+  useEffect(() => {
+    if (servicoInicial && barbeiroPreSelecionado) {
+      buscarSlots(data, barbeiroPreSelecionado.id, servicoInicial.id);
+    }
+    // Só na primeira abertura da tela.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const servico = useMemo(
     () => servicos.find((s) => s.id === servicoId) ?? null,
@@ -167,6 +187,7 @@ export function BookingFlow({
           nome,
           telefone_whatsapp: whatsapp,
           email,
+          aniversario: aniversario || undefined,
         }),
       });
       const json = await res.json();
@@ -177,6 +198,7 @@ export function BookingFlow({
         return;
       }
 
+      lembrarCliente({ nome, telefone: whatsapp, email });
       setResultado(json);
       setPasso("confirmado");
     } catch {
@@ -214,7 +236,7 @@ export function BookingFlow({
             </p>
           )}
           <Titulo>Qual serviço?</Titulo>
-          <div className="mt-1 flex flex-col gap-2">
+          <div className="mt-1 grid gap-2 lg:grid-cols-2">
             {servicos.map((s) => (
               <button
                 key={s.id}
@@ -247,7 +269,7 @@ export function BookingFlow({
         <div className="flex flex-col gap-3">
           <p className="text-sm text-aco">{servico?.nome}</p>
           <Titulo>Com quem?</Titulo>
-          <div className="mt-1 flex flex-col gap-2">
+          <div className="mt-1 grid gap-2 lg:grid-cols-2">
             <button
               onClick={() => {
                 setBarbeiroSelecionado(QUALQUER);
@@ -298,7 +320,7 @@ export function BookingFlow({
           <p className="text-sm text-aco">{resumo}</p>
           <Titulo>Quando?</Titulo>
 
-          <div className="-mx-5 mt-1 flex gap-2 overflow-x-auto px-5 pb-2 [scrollbar-width:none]">
+          <div className="-mx-5 mt-1 flex gap-2 overflow-x-auto px-5 pb-2 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">
             {dias.map((d) => {
               const ativo = d.iso === data;
               return (
@@ -329,7 +351,7 @@ export function BookingFlow({
             </p>
           )}
           {!carregandoSlots && slots.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
               {slots.map((s) => (
                 <button
                   key={s.iso + s.barbeiroId}
@@ -375,7 +397,24 @@ export function BookingFlow({
             </p>
           </div>
 
-          <Titulo>Seus dados</Titulo>
+          <div className="flex items-baseline justify-between gap-3">
+            <Titulo>{lembrado ? `É você, ${nome.split(" ")[0]}?` : "Seus dados"}</Titulo>
+            {lembrado && (
+              <button
+                type="button"
+                onClick={() => {
+                  esquecerCliente();
+                  setLembrado(false);
+                  setNome("");
+                  setWhatsapp("");
+                  setEmail("");
+                }}
+                className="shrink-0 text-sm font-medium text-aco underline-offset-4 hover:text-tinta hover:underline"
+              >
+                Não sou eu
+              </button>
+            )}
+          </div>
           <input
             required
             autoComplete="name"
@@ -402,8 +441,27 @@ export function BookingFlow({
             onChange={(e) => setEmail(e.target.value)}
             className={CAMPO}
           />
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium">
+              Aniversário <span className="font-normal text-aco">(opcional)</span>
+            </span>
+            <input
+              inputMode="numeric"
+              placeholder="dd/mm"
+              maxLength={5}
+              pattern="\d{1,2}/\d{1,2}"
+              value={aniversario}
+              onChange={(e) => {
+                // Põe a barra sozinho: "2512" vira "25/12".
+                const d = e.target.value.replace(/\D/g, "").slice(0, 4);
+                setAniversario(d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d);
+              }}
+              className={`${CAMPO} w-32`}
+            />
+          </label>
           <p className="text-xs text-aco">
-            A confirmação e o link para cancelar chegam por e-mail.
+            A confirmação e o link para cancelar chegam por e-mail. Seus dados ficam salvos
+            neste aparelho para a próxima vez.
           </p>
 
           {erro && <p className="text-sm text-navalha">{erro}</p>}

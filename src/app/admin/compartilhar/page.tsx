@@ -7,7 +7,7 @@ export default async function CompartilharPage() {
   const supabase = await createClient();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://naviu.app.br";
-  const linkGeral = `${appUrl}/b/${barbearia.slug}`;
+  const linkGeral = `${appUrl}/${barbearia.slug}`;
 
   const { data: barbeiros } = await supabase
     .from("barbeiros")

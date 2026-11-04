@@ -66,7 +66,7 @@ export default async function AdminLayout({
               {barbearia.nome}
             </p>
             <p className="text-xs text-zinc-500">
-              naviu.app.br/b/{barbearia.slug}
+              naviu.app.br/{barbearia.slug}
             </p>
           </div>
         </div>

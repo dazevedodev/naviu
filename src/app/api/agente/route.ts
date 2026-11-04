@@ -2,7 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { acessoLiberado } from "@/lib/assinatura";
-import { responderCliente } from "@/lib/agente/agente";
+import { responderCliente, type ClienteDoAparelho } from "@/lib/agente/agente";
+import { telefoneValido } from "@/lib/telefone";
 import type { Barbearia, Barbeiro, Servico } from "@/lib/types";
 
 // Uma mensagem pode levar algumas idas e vindas com o modelo.
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
   const bruto = await request.text();
   if (bruto.length > MAX_TAMANHO_PEDIDO) return erro("Conversa longa demais. Comece de novo.", 413);
 
-  let corpo: { slug?: unknown; mensagens?: unknown };
+  let corpo: { slug?: unknown; mensagens?: unknown; cliente?: unknown };
   try {
     corpo = JSON.parse(bruto);
   } catch {
@@ -70,6 +71,19 @@ export async function POST(request: NextRequest) {
   ) {
     return erro("Mensagem inválida.", 400);
   }
+
+  // Quem já agendou neste aparelho (guardado no navegador). Só vale se vier
+  // inteiro e com cara de nome e telefone; senão a conversa segue sem pista.
+  const c = corpo.cliente as { nome?: unknown; telefone?: unknown } | undefined;
+  const cliente: ClienteDoAparelho | undefined =
+    c &&
+    typeof c.nome === "string" &&
+    typeof c.telefone === "string" &&
+    c.nome.trim().length >= 2 &&
+    c.nome.length <= 80 &&
+    telefoneValido(c.telefone)
+      ? { nome: c.nome.trim(), telefone: c.telefone.trim() }
+      : undefined;
 
   const supabase = createServiceRoleClient();
 
@@ -109,6 +123,7 @@ export async function POST(request: NextRequest) {
     const resultado = await responderCliente(
       { supabase, barbearia, barbeiros, servicos },
       mensagens as Anthropic.MessageParam[],
+      cliente,
     );
     return NextResponse.json(resultado);
   } catch (e) {

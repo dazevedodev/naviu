@@ -60,12 +60,14 @@ export async function apagarServico(id: string) {
 export async function atualizarDetalhesServico(id: string, formData: FormData) {
   const barbearia = await getBarbeariaAtual();
   const legenda = String(formData.get("legenda") ?? "").trim();
+  const categoria = String(formData.get("categoria") ?? "").trim().slice(0, 40);
   const observacao_interna = String(formData.get("observacao_interna") ?? "").trim();
   const imagem = formData.get("imagem") as File | null;
 
   const supabase = await createClient();
   const update: Record<string, unknown> = {
     legenda: legenda || null,
+    categoria: categoria || null,
     observacao_interna: observacao_interna || null,
   };
 
@@ -91,6 +93,6 @@ export async function atualizarDetalhesServico(id: string, formData: FormData) {
 
   revalidatePath(`/admin/servicos/${id}`);
   revalidatePath("/admin/servicos");
-  revalidatePath(`/b/${barbearia.slug}`);
+  revalidatePath(`/${barbearia.slug}`);
   return { error: null };
 }

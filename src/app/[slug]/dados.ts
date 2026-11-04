@@ -1,7 +1,10 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Barbearia, Barbeiro, Servico } from "@/lib/types";
 
-export async function buscarDadosBarbearia(slug: string) {
+// `cache`: a página e os metadados (título da aba) pedem a mesma barbearia;
+// assim o banco é consultado uma vez só por visita.
+export const buscarDadosBarbearia = cache(async (slug: string) => {
   const supabase = await createClient();
 
   const { data: barbearia } = await supabase
@@ -30,4 +33,4 @@ export async function buscarDadosBarbearia(slug: string) {
   ]);
 
   return { barbearia, barbeiros: barbeiros ?? [], servicos: servicos ?? [] };
-}
+});

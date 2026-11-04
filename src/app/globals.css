@@ -32,3 +32,46 @@ body {
   color: var(--foreground);
   font-family: var(--font-figtree), Arial, Helvetica, sans-serif;
 }
+
+/* A Navi pisca de vez em quando. */
+@keyframes navi-piscar {
+  0%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.12);
+  }
+}
+
+.navi-olhos {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: navi-piscar 4.5s infinite;
+}
+
+/* "Digitando…": três pontinhos que sobem e descem. */
+@keyframes navi-digitando {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.navi-ponto {
+  animation: navi-digitando 1.1s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navi-olhos,
+  .navi-ponto {
+    animation: none;
+  }
+}

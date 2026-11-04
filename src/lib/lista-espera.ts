@@ -40,7 +40,7 @@ export async function avisarListaEspera(supabase: SupabaseClient, agendamentoId:
     .slice(0, AVISOS_POR_VAGA);
   if (avisar.length === 0) return 0;
 
-  const link = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://naviu.app.br"}/b/${barbearia.slug}`;
+  const link = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://naviu.app.br"}/${barbearia.slug}`;
   for (const f of avisar) {
     const servico = f.servicos as unknown as { nome: string } | null;
     await enviarEmailVagaAberta(f.email, {

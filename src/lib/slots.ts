@@ -18,7 +18,8 @@ export type JanelaTrabalho = {
 // + agendamentos existentes, com a duração do serviço de cada um).
 //
 // Modo "automático": os horários são gerados a cada `intervalo_min` dentro
-// de [hora_inicio, hora_fim), pulando a pausa (ex.: almoço) se houver.
+// de [hora_inicio, hora_fim), pulando a pausa (ex.: almoço) se houver, e
+// também logo que cada atendimento termina (encaixe pelo tempo do serviço).
 // Modo "manual": os horários são exatamente os listados em
 // `horarios_manuais`, sem gerar nada — a duração do serviço ainda define
 // até quando cada um ocupa, mas não há checagem contra um "fim do dia".
@@ -65,13 +66,23 @@ export function gerarSlotsDisponiveis(params: {
           }
         : null;
 
-    for (
-      let cursor = cursorInicial;
-      cursor.getTime() + duracaoMs <= fimJanela.getTime();
-      cursor = new Date(cursor.getTime() + passo * 60_000)
-    ) {
-      const fimSlot = new Date(cursor.getTime() + duracaoMs);
-      if (livre(cursor, fimSlot, pausa)) slots.push(new Date(cursor));
+    // Candidatos: a grade normal (a cada `passo`) mais o minuto em que cada
+    // atendimento ou pausa termina. Assim, se um corte de 10 min começa às
+    // 15:00, às 15:10 o barbeiro já aparece livre, mesmo fora da grade.
+    const candidatos = new Set<number>();
+    for (let t = cursorInicial.getTime(); t < fimJanela.getTime(); t += passo * 60_000) {
+      candidatos.add(t);
+    }
+    for (const fim of [...params.ocupados.map((o) => o.fim), ...(pausa ? [pausa.fim] : [])]) {
+      const t = fim.getTime();
+      if (t > cursorInicial.getTime() && t < fimJanela.getTime()) candidatos.add(t);
+    }
+
+    for (const t of candidatos) {
+      const cursor = new Date(t);
+      const fimSlot = new Date(t + duracaoMs);
+      if (fimSlot > fimJanela) continue;
+      if (livre(cursor, fimSlot, pausa)) slots.push(cursor);
     }
   }
 

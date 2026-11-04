@@ -1,9 +1,16 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { criarAgendamento } from "../agendar";
+import { formatarAniversario, lerAniversario } from "../aniversario";
+import { STATUS_ATIVOS, cancelarPeloCliente } from "../cancelar";
 import { horariosLivres } from "../disponibilidade";
 import { normalizarTelefone, telefoneValido } from "../telefone";
-import { formatarDataBrasilia, formatarHoraBrasilia, hojeISOBrasilia } from "../timezone";
+import {
+  dataISOBrasilia,
+  formatarDataBrasilia,
+  formatarHoraBrasilia,
+  hojeISOBrasilia,
+} from "../timezone";
 import type { Barbearia, Barbeiro, Servico } from "../types";
 import {
   DIAS_SEMANA,
@@ -30,6 +37,8 @@ export type AgendamentoFeito = {
   barbeiro: string;
   data: string; // "06/11/2026"
   hora: string; // "14:00"
+  // Para o navegador lembrar quem agendou e a Navi reconhecer da próxima vez.
+  cliente: { nome: string; telefone: string; email?: string };
 };
 
 // Quantos horários o agente recebe por dia; o suficiente para oferecer
@@ -83,8 +92,43 @@ export const FERRAMENTAS: Anthropic.Tool[] = [
           type: "string",
           description: "e-mail para receber a confirmação (opcional)",
         },
+        aniversario: {
+          type: "string",
+          description: "dia e mês do aniversário, dd/mm (opcional, só se o cliente disser)",
+        },
       },
       required: ["servico_id", "barbeiro_id", "data_hora", "nome", "telefone_whatsapp"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "buscar_cliente",
+    description:
+      "Procura o cliente pelo WhatsApp nesta barbearia. Diz se é cliente novo ou antigo e traz o nome, " +
+      "quantas vezes já veio, o último serviço e os próximos horários marcados (com agendamento_id). " +
+      "Use assim que souber o WhatsApp do cliente, e sempre antes de remarcar ou cancelar.",
+    input_schema: {
+      type: "object",
+      properties: {
+        telefone_whatsapp: { type: "string", description: "WhatsApp com DDD" },
+      },
+      required: ["telefone_whatsapp"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "cancelar_agendamento",
+    description:
+      "Desmarca um horário futuro do cliente. O agendamento_id vem de buscar_cliente e precisa ser " +
+      "do mesmo WhatsApp. Só chame depois que o cliente confirmou qual horário quer desmarcar. " +
+      "Para remarcar: primeiro agende o horário novo, e só depois cancele o antigo.",
+    input_schema: {
+      type: "object",
+      properties: {
+        agendamento_id: { type: "string" },
+        telefone_whatsapp: { type: "string" },
+      },
+      required: ["agendamento_id", "telefone_whatsapp"],
       additionalProperties: false,
     },
   },
@@ -187,6 +231,12 @@ async function agendar(ctx: ContextoAgente, input: Record<string, unknown>): Pro
     return { conteudo: "E-mail inválido. Peça de novo ou siga sem e-mail.", erro: true };
   }
 
+  const aniversarioTexto = texto(input.aniversario);
+  const aniversario = aniversarioTexto ? lerAniversario(aniversarioTexto) : null;
+  if (aniversarioTexto && !aniversario) {
+    return { conteudo: "Aniversário inválido: peça dia e mês (dd/mm) ou siga sem.", erro: true };
+  }
+
   const servico = ctx.servicos.find((s) => s.id === texto(input.servico_id));
   const barbeiro = ctx.barbeiros.find((b) => b.id === texto(input.barbeiro_id));
   if (!servico || !barbeiro) return { conteudo: "Serviço ou barbeiro não encontrado.", erro: true };
@@ -201,6 +251,7 @@ async function agendar(ctx: ContextoAgente, input: Record<string, unknown>): Pro
       nome,
       telefone_whatsapp: telefone,
       email: email || null,
+      aniversario,
     },
     "agente",
   );
@@ -219,11 +270,16 @@ async function agendar(ctx: ContextoAgente, input: Record<string, unknown>): Pro
     barbeiro: barbeiro.nome,
     data: formatarDataBrasilia(dataHora),
     hora: formatarHoraBrasilia(dataHora),
+    cliente: { nome, telefone, ...(email ? { email } : {}) },
   };
   return {
     conteudo: JSON.stringify({
       agendado: true,
-      ...agendamento,
+      id: agendamento.id,
+      servico: agendamento.servico,
+      barbeiro: agendamento.barbeiro,
+      data: agendamento.data,
+      hora: agendamento.hora,
       email_de_confirmacao: email ? "enviado" : "sem e-mail",
     }),
     agendamento,
@@ -288,6 +344,107 @@ async function entrarNaListaDeEspera(
   };
 }
 
+type LinhaHistorico = {
+  id: string;
+  data_hora: string;
+  status: string;
+  servicos: { nome: string } | null;
+  barbeiros: { nome: string } | null;
+};
+
+async function buscarCliente(ctx: ContextoAgente, input: Record<string, unknown>): Promise<Resultado> {
+  const telefone = texto(input.telefone_whatsapp);
+  if (!telefoneValido(telefone)) return { conteudo: "WhatsApp inválido. Peça o número com DDD.", erro: true };
+
+  const { data: cliente } = await ctx.supabase
+    .from("clientes")
+    .select("id, nome, aniversario_dia, aniversario_mes")
+    .eq("barbearia_id", ctx.barbearia.id)
+    .eq("telefone_normalizado", normalizarTelefone(telefone))
+    .maybeSingle();
+
+  if (!cliente) {
+    return { conteudo: JSON.stringify({ cliente_novo: true, nunca_agendou_aqui: true }) };
+  }
+
+  const { data } = await ctx.supabase
+    .from("agendamentos")
+    .select("id, data_hora, status, servicos(nome), barbeiros(nome)")
+    .eq("cliente_id", cliente.id)
+    .order("data_hora", { ascending: false })
+    .limit(50);
+  const historico = (data ?? []) as unknown as LinhaHistorico[];
+
+  const agora = Date.now();
+  const proximos = historico
+    .filter((a) => STATUS_ATIVOS.includes(a.status) && new Date(a.data_hora).getTime() > agora)
+    .reverse()
+    .map((a) => {
+      const d = new Date(a.data_hora);
+      return {
+        agendamento_id: a.id,
+        servico: a.servicos?.nome ?? "serviço",
+        barbeiro: a.barbeiros?.nome ?? "barbeiro",
+        data: formatarDataBrasilia(d),
+        dia_semana: DIAS_SEMANA[new Date(`${dataISOBrasilia(d)}T00:00:00Z`).getUTCDay()],
+        hora: formatarHoraBrasilia(d),
+      };
+    });
+  const passados = historico.filter(
+    (a) => a.status !== "cancelado" && new Date(a.data_hora).getTime() <= agora,
+  );
+  const ultimo = passados.find((a) => a.status !== "faltou");
+
+  return {
+    conteudo: JSON.stringify({
+      cliente_novo: false,
+      nome: cliente.nome,
+      vezes_que_veio: passados.filter((a) => a.status !== "faltou").length,
+      faltas: passados.filter((a) => a.status === "faltou").length,
+      ultimo_servico: ultimo
+        ? {
+            servico: ultimo.servicos?.nome,
+            barbeiro: ultimo.barbeiros?.nome,
+            data: formatarDataBrasilia(new Date(ultimo.data_hora)),
+          }
+        : null,
+      aniversario:
+        cliente.aniversario_dia && cliente.aniversario_mes
+          ? formatarAniversario(cliente.aniversario_dia, cliente.aniversario_mes)
+          : "não informado",
+      proximos_horarios: proximos,
+    }),
+  };
+}
+
+async function cancelarAgendamento(
+  ctx: ContextoAgente,
+  input: Record<string, unknown>,
+): Promise<Resultado> {
+  const telefone = texto(input.telefone_whatsapp);
+  if (!telefoneValido(telefone)) return { conteudo: "WhatsApp inválido.", erro: true };
+
+  // Só desmarca horário desta barbearia, deste cliente e que ainda não passou.
+  const { data } = await ctx.supabase
+    .from("agendamentos")
+    .select("id, data_hora, clientes!inner(telefone_normalizado)")
+    .eq("id", texto(input.agendamento_id))
+    .eq("barbearia_id", ctx.barbearia.id)
+    .eq("clientes.telefone_normalizado", normalizarTelefone(telefone))
+    .maybeSingle();
+
+  if (!data) {
+    return { conteudo: "Esse horário não é deste WhatsApp. Use buscar_cliente de novo.", erro: true };
+  }
+  if (new Date(data.data_hora).getTime() <= Date.now()) {
+    return { conteudo: "Esse horário já passou e não pode ser desmarcado.", erro: true };
+  }
+
+  const resultado = await cancelarPeloCliente(ctx.supabase, data.id);
+  if (resultado.error) return { conteudo: resultado.error, erro: true };
+  return { conteudo: JSON.stringify({ cancelado: true }) };
+}
+
 export async function executarFerramenta(
   ctx: ContextoAgente,
   nome: string,
@@ -296,6 +453,8 @@ export async function executarFerramenta(
   const dados = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
   if (nome === "ver_horarios_livres") return verHorariosLivres(ctx, dados);
   if (nome === "agendar") return agendar(ctx, dados);
+  if (nome === "buscar_cliente") return buscarCliente(ctx, dados);
+  if (nome === "cancelar_agendamento") return cancelarAgendamento(ctx, dados);
   if (nome === "entrar_na_lista_de_espera") return entrarNaListaDeEspera(ctx, dados);
   return { conteudo: `Ferramenta desconhecida: ${nome}`, erro: true };
 }

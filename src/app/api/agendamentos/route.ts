@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { criarAgendamento } from "@/lib/agendar";
+import { lerAniversario } from "@/lib/aniversario";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest) {
     nome,
     telefone_whatsapp,
     email,
+    aniversario, // "dd/mm", opcional
     origem, // "publico" (padrão, cliente pela página pública) | "manual" (admin criou)
   } = body;
 
@@ -51,7 +53,16 @@ export async function POST(request: NextRequest) {
 
   const resultado = await criarAgendamento(
     supabase,
-    { barbearia_id, barbeiro_id, servico_id, data_hora, nome, telefone_whatsapp, email },
+    {
+      barbearia_id,
+      barbeiro_id,
+      servico_id,
+      data_hora,
+      nome,
+      telefone_whatsapp,
+      email,
+      aniversario: typeof aniversario === "string" ? lerAniversario(aniversario) : null,
+    },
     manual ? "manual" : "publico",
   );
 

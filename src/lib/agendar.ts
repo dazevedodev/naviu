@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Aniversario } from "./aniversario";
 import { acessoLiberado } from "./assinatura";
 import { horariosLivres } from "./disponibilidade";
 import { enviarEmailConfirmacaoCliente, enviarEmailNotificacaoAdmin } from "./email";
@@ -15,6 +16,7 @@ export type NovoAgendamento = {
   nome: string;
   telefone_whatsapp: string;
   email?: string | null;
+  aniversario?: Aniversario | null;
 };
 
 export type ResultadoAgendamento =
@@ -94,7 +96,7 @@ export async function criarAgendamento(
   }
 
   // Mesma pessoa (mesmo WhatsApp) na mesma barbearia = mesmo cadastro. O
-  // nome é atualizado pro mais recente; o e-mail só se vier preenchido.
+  // nome é atualizado pro mais recente; e-mail e aniversário só se vierem.
   const { data: cliente, error: erroCliente } = await supabase
     .from("clientes")
     .upsert(
@@ -104,6 +106,9 @@ export async function criarAgendamento(
         telefone_whatsapp: novo.telefone_whatsapp,
         telefone_normalizado: normalizarTelefone(novo.telefone_whatsapp),
         ...(novo.email ? { email: novo.email } : {}),
+        ...(novo.aniversario
+          ? { aniversario_dia: novo.aniversario.dia, aniversario_mes: novo.aniversario.mes }
+          : {}),
       },
       { onConflict: "barbearia_id,telefone_normalizado" },
     )

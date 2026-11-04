@@ -35,6 +35,26 @@ export function DadosBarbeariaForm({ barbearia }: { barbearia: Barbearia }) {
       />
 
       <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        Link da sua página
+      </label>
+      <div className="mb-1 flex items-center rounded-lg border border-zinc-300 text-sm focus-within:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
+        <span className="pl-3 text-zinc-500">naviu.app.br/</span>
+        <input
+          name="slug"
+          required
+          defaultValue={barbearia.slug}
+          pattern="[a-z0-9]+(-[a-z0-9]+)*"
+          minLength={3}
+          maxLength={40}
+          className="min-w-0 flex-1 rounded-r-lg bg-transparent py-2 pr-3 outline-none"
+        />
+      </div>
+      <p className="mb-4 text-xs text-zinc-500">
+        Letras sem acento, números e hífen. Se mudar, o link antigo para de funcionar:
+        atualize a bio do Instagram.
+      </p>
+
+      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
         Endereço
       </label>
       <input

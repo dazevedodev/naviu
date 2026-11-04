@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getBarbeariaAtual } from "@/lib/current-barbearia";
+import { problemaNoSlug, slugificar } from "@/lib/slug";
 
 export async function salvarDadosBarbearia(formData: FormData) {
   const barbearia = await getBarbeariaAtual();
@@ -10,20 +11,30 @@ export async function salvarDadosBarbearia(formData: FormData) {
   const endereco = String(formData.get("endereco") ?? "").trim();
   const telefone_whatsapp = String(formData.get("telefone_whatsapp") ?? "").trim();
 
+  const slug = slugificar(String(formData.get("slug") ?? "")) || barbearia.slug;
+
   if (!nome) return { error: "Nome é obrigatório." };
+  const erroSlug = slug === barbearia.slug ? null : problemaNoSlug(slug);
+  if (erroSlug) return { error: erroSlug };
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("barbearias")
     .update({
       nome,
+      slug,
       endereco: endereco || null,
       telefone_whatsapp: telefone_whatsapp || null,
     })
     .eq("id", barbearia.id);
 
-  revalidatePath("/admin/configuracoes");
-  revalidatePath("/admin");
+  // 23505 = já existe outra barbearia com esse link (slug é único no banco).
+  if (error?.code === "23505") return { error: "Esse link já está em uso. Escolha outro." };
+  if (error) return { error: "Não foi possível salvar. Tente novamente." };
+
+  revalidatePath("/admin", "layout");
+  revalidatePath(`/${barbearia.slug}`);
+  revalidatePath(`/${slug}`);
   return { error: null };
 }
 

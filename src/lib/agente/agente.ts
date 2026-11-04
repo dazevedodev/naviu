@@ -15,6 +15,10 @@ const MODELO = process.env.NAVIU_MODELO_IA || "claude-haiku-5-5";
 // Rodadas de ferramenta por mensagem do cliente (ver horários, agendar...).
 const MAX_RODADAS = 6;
 
+// Quem já agendou neste aparelho, segundo o navegador. É só uma pista: a Navi
+// confere com buscar_cliente e pergunta se é a pessoa mesmo.
+export type ClienteDoAparelho = { nome: string; telefone: string };
+
 export type RespostaAgente = {
   mensagens: Anthropic.MessageParam[];
   resposta: string;
@@ -25,7 +29,9 @@ function promptDoSistema(ctx: ContextoAgente): string {
   const { barbearia, barbeiros, servicos } = ctx;
   const preco = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  return `Você é a recepção virtual da barbearia ${barbearia.nome}, no site de agendamento Naviu. Seu trabalho é marcar horários conversando com o cliente.
+  return `Você é a Navi, a atendente virtual da barbearia ${barbearia.nome}, no site de agendamento Naviu. Seu trabalho é marcar, remarcar e desmarcar horários conversando com o cliente, e tirar dúvidas sobre serviços, preços e endereço.
+
+O cliente abriu o chat e já viu uma saudação sua na tela. Não se apresente de novo: vá direto ao que ele pediu.
 
 Dados da barbearia:
 - Endereço: ${barbearia.endereco || "não informado"}
@@ -36,6 +42,12 @@ ${servicos.map((s) => `- ${s.id} | ${s.nome} | ${s.duracao_min} min | ${preco(s.
 Barbeiros (id | nome):
 ${barbeiros.map((b) => `- ${b.id} | ${b.nome}`).join("\n")}
 
+Quem é o cliente:
+- Se a mensagem trouxer "Cliente deste aparelho", essa pessoa já agendou por este celular ou computador. Chame buscar_cliente com esse WhatsApp antes de responder a primeira vez e trate o cliente pelo primeiro nome. Não repita o número dele na conversa.
+- Sem essa pista, quando o cliente der o WhatsApp, chame buscar_cliente para saber se ele é novo ou antigo.
+- Cliente antigo: use o que souber (o último serviço, o barbeiro de sempre) para facilitar, sem exagerar. Se ele já tem horário marcado, mencione quando fizer sentido.
+- Cliente novo: dê boas-vindas à barbearia.
+
 Como trabalhar:
 - Descubra o serviço, o dia e, se o cliente tiver preferência, o período (manhã, tarde, noite) e o barbeiro. Se ele não disser o serviço e houver mais de um, pergunte.
 - Consulte ver_horarios_livres antes de sugerir qualquer horário. Nunca invente horário: ofereça só os que a ferramenta devolveu, no máximo 4 opções por vez.
@@ -43,8 +55,10 @@ Como trabalhar:
 - Se o cliente só pode naquele dia e não há horário, ofereça a lista de espera: se alguém cancelar, ele recebe um e-mail para marcar. Para isso, peça nome, WhatsApp e e-mail e use entrar_na_lista_de_espera.
 - Antes de marcar, peça nome e WhatsApp com DDD. O WhatsApp é só o contato do cliente: você marca aqui pelo site, nunca diga que agenda "no WhatsApp". E-mail é opcional, só para receber a confirmação e o link de cancelamento.
 - Antes de chamar agendar, repita serviço, barbeiro, dia e hora e espere o cliente confirmar. Só agende depois de um sim claro.
-- Para cancelar ou remarcar: o link de cancelamento vai no e-mail de confirmação; fora isso, o cliente fala direto com a barbearia.
-- Fale como uma boa recepcionista: português do Brasil, frases curtas, simpático, sem markdown, sem listas longas.
+- Para cancelar: use buscar_cliente, confirme com o cliente qual horário, e só então cancelar_agendamento.
+- Para remarcar: ache um horário novo com ver_horarios_livres, confirme, agende o novo com agendar e só depois cancele o antigo. Se o novo falhar, o antigo continua de pé.
+- Se o cliente ainda não tem aniversário no cadastro (buscar_cliente diz "não informado"), na hora de marcar você pode perguntar, uma vez só e sem insistir, o dia e o mês do aniversário: a barbearia gosta de lembrar a data.
+- Fale como uma boa recepcionista de barbearia: português do Brasil, frases curtas, simpática e direta, sem markdown, sem listas longas, no máximo um emoji de vez em quando.
 - Só ajude com o que é desta barbearia (horários, serviços, preços, endereço). Para o resto, diga com educação que só cuida dos agendamentos.
 - Cada mensagem do cliente chega com a data e a hora de agora (horário de Brasília). Datas relativas ("sexta", "amanhã", "semana que vem") contam a partir dessa data; "sexta" é a próxima sexta, ou hoje se hoje for sexta.`;
 }
@@ -52,14 +66,20 @@ Como trabalhar:
 // A hora vai junto com a mensagem do cliente, e não no prompt do sistema: o
 // raciocínio (thinking) que volta no histórico é assinado contra o prompt do
 // sistema, então ele não pode mudar de um minuto para o outro.
-function comHoraAtual(mensagem: Anthropic.MessageParam): Anthropic.MessageParam {
+// Pelo mesmo motivo, a pista de quem é o cliente deste aparelho também vai aqui.
+function comHoraAtual(
+  mensagem: Anthropic.MessageParam,
+  cliente?: ClienteDoAparelho,
+): Anthropic.MessageParam {
   if (typeof mensagem.content !== "string") return mensagem;
   const hoje = hojeISOBrasilia();
   const diaSemana = DIAS_SEMANA[new Date(`${hoje}T00:00:00Z`).getUTCDay()];
+  const contexto = [`Agora: ${diaSemana}, ${hoje}, ${formatarHoraBrasilia(new Date())}`];
+  if (cliente) contexto.push(`Cliente deste aparelho: ${cliente.nome}, WhatsApp ${cliente.telefone}`);
   return {
     role: "user",
     content: [
-      { type: "text", text: `[Agora: ${diaSemana}, ${hoje}, ${formatarHoraBrasilia(new Date())}]` },
+      { type: "text", text: `[${contexto.join(" | ")}]` },
       { type: "text", text: mensagem.content },
     ],
   };
@@ -91,9 +111,13 @@ function textoDaResposta(conteudo: Anthropic.ContentBlock[]): string {
 export async function responderCliente(
   ctx: ContextoAgente,
   historico: Anthropic.MessageParam[],
+  cliente?: ClienteDoAparelho,
 ): Promise<RespostaAgente> {
   const client = new Anthropic();
-  let mensagens = [...historico.slice(0, -1), comHoraAtual(historico[historico.length - 1])];
+  let mensagens = [
+    ...historico.slice(0, -1),
+    comHoraAtual(historico[historico.length - 1], cliente),
+  ];
   const system = promptDoSistema(ctx);
   let agendamento: AgendamentoFeito | undefined;
 
@@ -122,7 +146,7 @@ export async function responderCliente(
       // não tivesse existido.
       return {
         mensagens: historico,
-        resposta: "Desculpe, não consigo ajudar com isso. Quer marcar um horário?",
+        resposta: "Isso eu não consigo responder. Quer marcar um horário?",
       };
     }
 
