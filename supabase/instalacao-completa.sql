@@ -694,3 +694,31 @@ group by c.id;
 alter table barbearias add column if not exists instagram text;
 alter table barbearias add column if not exists tiktok text;
 alter table barbearias add column if not exists email_contato text;
+
+-- ---------------------------------------------------------------------------
+-- 7) Clientes sumidos (0016)
+-- ---------------------------------------------------------------------------
+
+alter table clientes add column if not exists chamado_em timestamptz;
+
+-- A coluna nova entra no fim da view: o Postgres só deixa acrescentar
+-- colunas no final com "create or replace".
+create or replace view clientes_resumo with (security_invoker = true) as
+select
+  c.id,
+  c.barbearia_id,
+  c.nome,
+  c.telefone_whatsapp,
+  c.email,
+  c.aniversario_dia,
+  c.aniversario_mes,
+  c.criado_em,
+  count(a.id) filter (where a.status = 'concluido') as visitas,
+  coalesce(sum(a.valor_cobrado) filter (where a.status = 'concluido'), 0) as gasto,
+  count(a.id) filter (where a.status = 'faltou') as faltas,
+  max(a.data_hora) filter (where a.status = 'concluido') as ultima_visita,
+  min(a.data_hora) filter (where a.status in ('pendente', 'confirmado') and a.data_hora > now()) as proximo_horario,
+  c.chamado_em
+from clientes c
+left join agendamentos a on a.cliente_id = c.id
+group by c.id;

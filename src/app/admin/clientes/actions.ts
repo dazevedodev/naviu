@@ -31,3 +31,13 @@ export async function salvarCliente(id: string, formData: FormData) {
   revalidatePath("/admin", "layout");
   return { error: null };
 }
+
+// Marca que o dono chamou o cliente no WhatsApp: ele sai da lista de sumidos
+// por um tempo.
+export async function marcarChamado(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("clientes").update({ chamado_em: new Date().toISOString() }).eq("id", id);
+  if (error) return { error: "Não foi possível marcar. Rode a migração 0016 no Supabase." };
+  revalidatePath("/admin", "layout");
+  return { error: null };
+}
