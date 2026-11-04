@@ -37,6 +37,8 @@ export type AgendamentoFeito = {
   barbeiro: string;
   data: string; // "06/11/2026"
   hora: string; // "14:00"
+  inicio: string; // ISO, para o botão "salvar na agenda"
+  fim: string;
   // Para o navegador lembrar quem agendou e a Navi reconhecer da próxima vez.
   cliente: { nome: string; telefone: string; email?: string };
 };
@@ -113,6 +115,21 @@ export const FERRAMENTAS: Anthropic.Tool[] = [
         telefone_whatsapp: { type: "string", description: "WhatsApp com DDD" },
       },
       required: ["telefone_whatsapp"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "salvar_aniversario",
+    description:
+      "Guarda o dia e o mês do aniversário de um cliente que já tem cadastro (já agendou alguma vez). " +
+      "Use quando o cliente disser o aniversário depois de o horário já estar marcado. O ano, se vier, é ignorado.",
+    input_schema: {
+      type: "object",
+      properties: {
+        telefone_whatsapp: { type: "string" },
+        aniversario: { type: "string", description: "dia e mês, ex.: 10/06" },
+      },
+      required: ["telefone_whatsapp", "aniversario"],
       additionalProperties: false,
     },
   },
@@ -270,6 +287,8 @@ async function agendar(ctx: ContextoAgente, input: Record<string, unknown>): Pro
     barbeiro: barbeiro.nome,
     data: formatarDataBrasilia(dataHora),
     hora: formatarHoraBrasilia(dataHora),
+    inicio: dataHora.toISOString(),
+    fim: new Date(dataHora.getTime() + servico.duracao_min * 60_000).toISOString(),
     cliente: { nome, telefone, ...(email ? { email } : {}) },
   };
   return {
@@ -417,6 +436,30 @@ async function buscarCliente(ctx: ContextoAgente, input: Record<string, unknown>
   };
 }
 
+async function salvarAniversario(
+  ctx: ContextoAgente,
+  input: Record<string, unknown>,
+): Promise<Resultado> {
+  const telefone = texto(input.telefone_whatsapp);
+  const aniversario = lerAniversario(texto(input.aniversario));
+  if (!telefoneValido(telefone)) return { conteudo: "WhatsApp inválido.", erro: true };
+  if (!aniversario) return { conteudo: "Data inválida: peça dia e mês, ex.: 10/06.", erro: true };
+
+  const { data } = await ctx.supabase
+    .from("clientes")
+    .update({ aniversario_dia: aniversario.dia, aniversario_mes: aniversario.mes })
+    .eq("barbearia_id", ctx.barbearia.id)
+    .eq("telefone_normalizado", normalizarTelefone(telefone))
+    .select("id");
+
+  if (!data?.length) {
+    return { conteudo: "Esse WhatsApp não tem cadastro aqui ainda. Guarde junto com o agendamento.", erro: true };
+  }
+  return {
+    conteudo: JSON.stringify({ salvo: true, aniversario: formatarAniversario(aniversario.dia, aniversario.mes) }),
+  };
+}
+
 async function cancelarAgendamento(
   ctx: ContextoAgente,
   input: Record<string, unknown>,
@@ -454,6 +497,7 @@ export async function executarFerramenta(
   if (nome === "ver_horarios_livres") return verHorariosLivres(ctx, dados);
   if (nome === "agendar") return agendar(ctx, dados);
   if (nome === "buscar_cliente") return buscarCliente(ctx, dados);
+  if (nome === "salvar_aniversario") return salvarAniversario(ctx, dados);
   if (nome === "cancelar_agendamento") return cancelarAgendamento(ctx, dados);
   if (nome === "entrar_na_lista_de_espera") return entrarNaListaDeEspera(ctx, dados);
   return { conteudo: `Ferramenta desconhecida: ${nome}`, erro: true };

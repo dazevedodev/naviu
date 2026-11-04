@@ -20,12 +20,9 @@
   --font-display: var(--font-unbounded);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* O Naviu tem um visual só, claro. As classes dark: antigas só valeriam com
+   a classe "dark" na página, que nunca é usada. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 body {
   background: var(--background);

@@ -7,6 +7,9 @@ import { clienteLembrado, lembrarCliente, type ClienteLembrado } from "./cliente
 type Bolha = { autor: "cliente" | "navi"; texto: string; hora: string };
 
 type Agendamento = {
+  id: string;
+  inicio?: string;
+  fim?: string;
   servico: string;
   barbeiro: string;
   data: string;
@@ -41,7 +44,28 @@ function conversaSalva(slug: string): Conversa {
 // da tela. O histórico completo, com as chamadas de ferramenta, vive aqui no
 // navegador em `historico` e vai inteiro a cada mensagem; `bolhas` é só o que
 // aparece na tela.
-export function ChatNavi({ slug, barbearia }: { slug: string; barbearia: string }) {
+// Link do Google Agenda já preenchido (quem usa iPhone salva pelo arquivo .ics).
+function linkGoogleAgenda(a: Agendamento, barbearia: string, endereco: string | null) {
+  const formato = (iso: string) => iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const p = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${a.servico} na ${barbearia}`,
+    dates: `${formato(a.inicio!)}/${formato(a.fim!)}`,
+    details: `Com ${a.barbeiro}. Marcado pela Navi.`,
+    ...(endereco ? { location: endereco } : {}),
+  });
+  return `https://calendar.google.com/calendar/render?${p}`;
+}
+
+export function ChatNavi({
+  slug,
+  barbearia,
+  endereco,
+}: {
+  slug: string;
+  barbearia: string;
+  endereco: string | null;
+}) {
   const [aberto, setAberto] = useState(false);
   // Lidos do navegador já na criação: nada disso aparece antes do chat abrir,
   // então o HTML do servidor e o do navegador continuam iguais.
@@ -233,6 +257,24 @@ export function ChatNavi({ slug, barbearia }: { slug: string; barbearia: string 
                 <p className="font-display text-lg font-semibold">
                   {conversa.agendamento.data} às {conversa.agendamento.hora}
                 </p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <a
+                    href={`/api/agendamentos/${conversa.agendamento.id}/calendario.ics`}
+                    className="flex h-10 items-center justify-center rounded-full bg-white text-xs font-semibold text-tinta hover:bg-rosado"
+                  >
+                    Salvar no celular
+                  </a>
+                  {conversa.agendamento.inicio && conversa.agendamento.fim && (
+                    <a
+                      href={linkGoogleAgenda(conversa.agendamento, barbearia, endereco)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-10 items-center justify-center rounded-full border border-white/30 text-xs font-semibold hover:bg-white/10"
+                    >
+                      Google Agenda
+                    </a>
+                  )}
+                </div>
               </div>
             )}
             <div ref={fimRef} />

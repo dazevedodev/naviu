@@ -4,6 +4,9 @@ export type Barbearia = {
   slug: string;
   endereco: string | null;
   telefone_whatsapp: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  email_contato: string | null;
   logo_url: string | null;
   capa_url: string | null;
   descricao: string | null;

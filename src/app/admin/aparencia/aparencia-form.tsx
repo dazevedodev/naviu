@@ -20,20 +20,20 @@ export function AparenciaForm({ barbearia }: { barbearia: Barbearia }) {
           setSalvo(!result.error);
         })
       }
-      className="max-w-md rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+      className="max-w-md rounded-3xl bg-white p-6"
     >
-      <h2 className="mb-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+      <h2 className="mb-1 text-sm font-semibold text-tinta">
         Aparência
       </h2>
-      <p className="mb-4 text-xs text-zinc-500">
+      <p className="mb-4 text-xs text-white0">
         Toda página de barbearia no Naviu tem o mesmo visual vermelho. Aqui você
         coloca a sua capa e a sua foto de perfil; o nome fica em Configurações.
       </p>
 
-      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <label className="mb-1 block text-sm font-medium text-tinta">
         Capa
       </label>
-      <p className="mb-1 text-xs text-zinc-500">
+      <p className="mb-1 text-xs text-white0">
         Imagem larga no topo da página, tipo capa do Instagram ou Facebook (opcional).
       </p>
       <div className="mb-4">
@@ -42,10 +42,10 @@ export function AparenciaForm({ barbearia }: { barbearia: Barbearia }) {
           <img
             src={previewCapa}
             alt="Capa"
-            className="mb-2 h-24 w-full rounded-lg border border-zinc-200 object-cover dark:border-zinc-800"
+            className="mb-2 h-24 w-full rounded-lg border border-black/[0.07] object-cover"
           />
         ) : (
-          <div className="mb-2 flex h-24 w-full items-center justify-center rounded-lg border border-dashed border-zinc-300 text-xs text-zinc-400 dark:border-zinc-700">
+          <div className="mb-2 flex h-24 w-full items-center justify-center rounded-lg border border-dashed border-black/10 text-xs text-aco/70">
             Sem capa
           </div>
         )}
@@ -57,11 +57,11 @@ export function AparenciaForm({ barbearia }: { barbearia: Barbearia }) {
             const file = e.target.files?.[0];
             if (file) setPreviewCapa(URL.createObjectURL(file));
           }}
-          className="w-full text-xs text-zinc-600 dark:text-zinc-400"
+          className="w-full text-xs text-aco"
         />
       </div>
 
-      <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <label className="mb-1 block text-sm font-medium text-tinta">
         Foto de perfil
       </label>
       <div className="mb-4 flex items-center gap-3">
@@ -70,10 +70,10 @@ export function AparenciaForm({ barbearia }: { barbearia: Barbearia }) {
           <img
             src={previewLogo}
             alt="Foto de perfil"
-            className="h-14 w-14 rounded-full border border-zinc-200 object-cover dark:border-zinc-800"
+            className="h-14 w-14 rounded-full border border-black/[0.07] object-cover"
           />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-dashed border-zinc-300 text-center text-[10px] text-zinc-400 dark:border-zinc-700">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-dashed border-black/10 text-center text-[10px] text-aco/70">
             Sem foto
           </div>
         )}
@@ -85,13 +85,13 @@ export function AparenciaForm({ barbearia }: { barbearia: Barbearia }) {
             const file = e.target.files?.[0];
             if (file) setPreviewLogo(URL.createObjectURL(file));
           }}
-          className="flex-1 text-xs text-zinc-600 dark:text-zinc-400"
+          className="flex-1 text-xs text-aco"
         />
       </div>
 
-      {error && <p className="mb-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="mb-4 text-sm text-navalha">{error}</p>}
       {salvo && !error && (
-        <p className="mb-4 text-sm text-green-700 dark:text-green-400">Salvo!</p>
+        <p className="mb-4 text-sm text-emerald-700">Salvo!</p>
       )}
 
       <button

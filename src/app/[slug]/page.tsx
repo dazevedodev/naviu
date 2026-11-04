@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { acessoLiberado } from "@/lib/assinatura";
+import { linkInstagram, linkTiktok } from "@/lib/contatos";
 import { buscarDadosBarbearia } from "./dados";
 import { AgendaPausada, CascaBarbearia } from "./casca";
 import { CatalogoServicos } from "./catalogo-servicos";
@@ -133,6 +134,50 @@ export default async function BarbeariaPublicaPage({
               </div>
             )}
 
+            {(barbearia.telefone_whatsapp || barbearia.instagram || barbearia.tiktok || barbearia.email_contato) && (
+              <div>
+                <h2 className={TITULO_LATERAL}>Contato</h2>
+                <ul className="flex flex-col gap-2 text-sm">
+                  {[
+                    barbearia.telefone_whatsapp && {
+                      rotulo: "WhatsApp",
+                      texto: barbearia.telefone_whatsapp,
+                      href: linkWhatsApp(barbearia.telefone_whatsapp),
+                    },
+                    barbearia.instagram && {
+                      rotulo: "Instagram",
+                      texto: `@${barbearia.instagram}`,
+                      href: linkInstagram(barbearia.instagram),
+                    },
+                    barbearia.tiktok && {
+                      rotulo: "TikTok",
+                      texto: `@${barbearia.tiktok}`,
+                      href: linkTiktok(barbearia.tiktok),
+                    },
+                    barbearia.email_contato && {
+                      rotulo: "E-mail",
+                      texto: barbearia.email_contato,
+                      href: `mailto:${barbearia.email_contato}`,
+                    },
+                  ]
+                    .filter((c): c is { rotulo: string; texto: string; href: string } => Boolean(c))
+                    .map((c) => (
+                      <li key={c.rotulo}>
+                        <a
+                          href={c.href}
+                          target={c.href.startsWith("mailto:") ? undefined : "_blank"}
+                          rel="noopener noreferrer"
+                          className="group flex items-baseline justify-between gap-3"
+                        >
+                          <span className="text-aco">{c.rotulo}</span>
+                          <span className="truncate font-semibold group-hover:text-navalha">{c.texto}</span>
+                        </a>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
             {barbearia.endereco && (
               <div>
                 <h2 className={TITULO_LATERAL}>Onde fica</h2>
@@ -151,7 +196,7 @@ export default async function BarbeariaPublicaPage({
         </div>
       </CascaBarbearia>
 
-      {naviLigada && <ChatNavi slug={barbearia.slug} barbearia={barbearia.nome} />}
+      {naviLigada && <ChatNavi slug={barbearia.slug} barbearia={barbearia.nome} endereco={barbearia.endereco} />}
     </>
   );
 }

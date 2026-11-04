@@ -24,13 +24,13 @@ export default async function DetalheServicoPage({
 
   return (
     <div>
-      <Link href="/admin/servicos" className="text-xs text-zinc-500 hover:underline">
+      <Link href="/admin/servicos" className="text-xs text-white0 hover:underline">
         ← Serviços
       </Link>
-      <h1 className="mb-1 mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="mb-1 mt-2 text-lg font-semibold text-tinta">
         {servico.nome}
       </h1>
-      <p className="mb-6 text-sm text-zinc-500">
+      <p className="mb-6 text-sm text-white0">
         {servico.duracao_min} min ·{" "}
         {servico.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
       </p>

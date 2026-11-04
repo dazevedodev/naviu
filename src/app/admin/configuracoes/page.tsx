@@ -7,7 +7,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="text-lg font-semibold text-tinta">
         Configurações
       </h1>
 

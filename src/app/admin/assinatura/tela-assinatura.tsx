@@ -53,15 +53,15 @@ function Situacao({ barbearia, temAssinatura }: { barbearia: Barbearia; temAssin
   }
 
   const cores = {
-    ok: "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950",
-    atencao: "border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/40",
-    bloqueado: "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40",
+    ok: "border-black/[0.07] bg-white",
+    atencao: "border-amber-300 bg-amber-50",
+    bloqueado: "border-red-300 bg-red-50",
   };
 
   return (
     <div className={`max-w-2xl rounded-2xl border p-6 ${cores[tom]}`}>
-      <h2 className="font-semibold text-zinc-950 dark:text-zinc-50">{titulo}</h2>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{texto}</p>
+      <h2 className="font-semibold text-tinta">{titulo}</h2>
+      <p className="mt-1 text-sm text-aco">{texto}</p>
     </div>
   );
 }
@@ -81,7 +81,7 @@ export async function TelaAssinatura({ barbearia }: { barbearia: Barbearia }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">Minha assinatura</h1>
+      <h1 className="text-lg font-semibold text-tinta">Minha assinatura</h1>
       <Situacao barbearia={barbearia} temAssinatura={temAssinatura} />
       <PainelAssinatura
         temAssinatura={temAssinatura}
@@ -90,7 +90,7 @@ export async function TelaAssinatura({ barbearia }: { barbearia: Barbearia }) {
         formaAtual={linha?.forma ?? "cartao"}
         faturaUrl={linha?.fatura_url ?? null}
       />
-      <p className="max-w-2xl text-xs text-zinc-500">
+      <p className="max-w-2xl text-xs text-white0">
         Pagamentos processados pelo Asaas. Sem fidelidade: cancele quando quiser.
       </p>
     </div>

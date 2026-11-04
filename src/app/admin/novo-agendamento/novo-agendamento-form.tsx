@@ -91,7 +91,7 @@ export function NovoAgendamentoForm({
 
   if (barbeiros.length === 0 || servicos.length === 0) {
     return (
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-white0">
         Cadastre pelo menos um barbeiro e um serviço antes de criar um agendamento.
       </p>
     );
@@ -100,10 +100,10 @@ export function NovoAgendamentoForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex max-w-md flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+      className="flex max-w-md flex-col gap-4 rounded-3xl bg-white p-6"
     >
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="mb-1 block text-sm font-medium text-tinta">
           Barbeiro
         </label>
         <select
@@ -113,7 +113,7 @@ export function NovoAgendamentoForm({
             setBarbeiroId(e.target.value);
             buscarSlots(e.target.value, servicoId, data);
           }}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
         >
           <option value="" disabled>
             Escolha o barbeiro
@@ -127,7 +127,7 @@ export function NovoAgendamentoForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="mb-1 block text-sm font-medium text-tinta">
           Serviço
         </label>
         <select
@@ -137,7 +137,7 @@ export function NovoAgendamentoForm({
             setServicoId(e.target.value);
             buscarSlots(barbeiroId, e.target.value, data);
           }}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
         >
           <option value="" disabled>
             Escolha o serviço
@@ -151,7 +151,7 @@ export function NovoAgendamentoForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="mb-1 block text-sm font-medium text-tinta">
           Data
         </label>
         <input
@@ -163,17 +163,17 @@ export function NovoAgendamentoForm({
             setData(e.target.value);
             buscarSlots(barbeiroId, servicoId, e.target.value);
           }}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="mb-1 block text-sm font-medium text-tinta">
           Horário
         </label>
-        {carregandoSlots && <p className="text-sm text-zinc-500">Carregando...</p>}
+        {carregandoSlots && <p className="text-sm text-white0">Carregando...</p>}
         {!carregandoSlots && barbeiroId && servicoId && slots.length === 0 && (
-          <p className="text-sm text-zinc-500">Nenhum horário livre nesse dia.</p>
+          <p className="text-sm text-white0">Nenhum horário livre nesse dia.</p>
         )}
         <div className="flex flex-wrap gap-2">
           {slots.map((iso) => (
@@ -183,8 +183,8 @@ export function NovoAgendamentoForm({
               onClick={() => setHorarioIso(iso)}
               className={`rounded-lg border px-3 py-1.5 text-sm ${
                 horarioIso === iso
-                  ? "border-zinc-950 bg-zinc-950 text-zinc-50 dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
-                  : "border-zinc-200 hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+                  ? "border-navalha bg-navalha text-white"
+                  : "border-black/[0.07] hover:border-navalha"
               }`}
             >
               {new Date(iso).toLocaleTimeString("pt-BR", {
@@ -198,7 +198,7 @@ export function NovoAgendamentoForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <label className="mb-1 block text-sm font-medium text-tinta">
           Cliente
         </label>
         <input
@@ -206,33 +206,33 @@ export function NovoAgendamentoForm({
           placeholder="Nome do cliente"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
-          className="mb-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="mb-2 w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
         />
         <input
           required
           placeholder="WhatsApp (com DDD)"
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
-          className="mb-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="mb-2 w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
         />
         <input
           type="email"
           placeholder="E-mail (opcional, pra mandar confirmação)"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          className="w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
         />
       </div>
 
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && <p className="text-sm text-navalha">{erro}</p>}
       {sucesso && (
-        <p className="text-sm text-green-700 dark:text-green-400">Agendamento criado!</p>
+        <p className="text-sm text-emerald-700">Agendamento criado!</p>
       )}
 
       <button
         type="submit"
         disabled={enviando || !horarioIso}
-        className="rounded-full bg-zinc-950 py-2.5 text-sm font-medium text-zinc-50 hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+        className="rounded-full bg-navalha py-2.5 text-sm font-medium text-white hover:bg-navalha-escuro disabled:opacity-50"
       >
         {enviando ? "Criando..." : "Criar agendamento"}
       </button>

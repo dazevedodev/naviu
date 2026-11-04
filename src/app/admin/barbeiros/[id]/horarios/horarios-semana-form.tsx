@@ -86,18 +86,18 @@ export function HorariosSemanaForm({
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-2">
           {d.horarios_manuais.length === 0 && (
-            <p className="text-xs text-zinc-400">Nenhum horário adicionado.</p>
+            <p className="text-xs text-aco/70">Nenhum horário adicionado.</p>
           )}
           {d.horarios_manuais.map((hora) => (
             <span
               key={hora}
-              className="flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700"
+              className="flex items-center gap-1 rounded-full border border-black/10 px-2 py-1 text-xs"
             >
               {hora}
               <button
                 type="button"
                 onClick={() => removerHorarioManual(d.dia_semana, hora)}
-                className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+                className="text-aco/70 hover:text-navalha"
               >
                 ×
               </button>
@@ -114,12 +114,12 @@ export function HorariosSemanaForm({
                 [d.dia_semana]: e.target.value,
               }))
             }
-            className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-xl border border-black/10 px-2 py-1 text-sm"
           />
           <button
             type="button"
             onClick={() => adicionarHorarioManual(d.dia_semana)}
-            className="rounded-lg bg-zinc-950 px-3 py-1 text-xs font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
+            className="rounded-lg bg-navalha px-3 py-1 text-xs font-medium text-white"
           >
             + adicionar
           </button>
@@ -137,13 +137,13 @@ export function HorariosSemanaForm({
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <p className="mb-3 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+    <div className="rounded-2xl border border-black/[0.07] bg-white p-4">
+      <p className="mb-3 text-sm font-semibold text-tinta">
         Horários da semana
       </p>
 
-      <div className="mb-4 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
-        <p className="mb-2 text-xs font-medium text-zinc-700 dark:text-zinc-300">
+      <div className="mb-4 rounded-xl border border-black/[0.07] p-3">
+        <p className="mb-2 text-xs font-medium text-tinta">
           Aplicar o mesmo horário em vários dias de uma vez
         </p>
 
@@ -151,27 +151,27 @@ export function HorariosSemanaForm({
           <button
             type="button"
             onClick={() => setDiasSelecionados(SEG_A_SEX)}
-            className="rounded-full border border-zinc-300 px-3 py-1 hover:border-zinc-400 dark:border-zinc-700"
+            className="rounded-full border border-black/10 px-3 py-1 hover:border-navalha"
           >
             Segunda a Sexta
           </button>
           <button
             type="button"
             onClick={() => setDiasSelecionados(SEG_A_SAB)}
-            className="rounded-full border border-zinc-300 px-3 py-1 hover:border-zinc-400 dark:border-zinc-700"
+            className="rounded-full border border-black/10 px-3 py-1 hover:border-navalha"
           >
             Segunda a Sábado
           </button>
           <button
             type="button"
             onClick={() => setDiasSelecionados(TODOS_OS_DIAS)}
-            className="rounded-full border border-zinc-300 px-3 py-1 hover:border-zinc-400 dark:border-zinc-700"
+            className="rounded-full border border-black/10 px-3 py-1 hover:border-navalha"
           >
             Todos os dias
           </button>
         </div>
 
-        <p className="mb-1 text-xs text-zinc-500">
+        <p className="mb-1 text-xs text-white0">
           Os atalhos só marcam a seleção abaixo — ajuste os dias como quiser
           antes de aplicar.
         </p>
@@ -181,8 +181,8 @@ export function HorariosSemanaForm({
               key={dia}
               className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-xs ${
                 diasSelecionados.includes(dia)
-                  ? "border-zinc-950 bg-zinc-950 text-zinc-50 dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
-                  : "border-zinc-200 text-zinc-600 dark:border-zinc-800 dark:text-zinc-400"
+                  ? "border-navalha bg-navalha text-white"
+                  : "border-black/[0.07] text-aco"
               }`}
             >
               <input
@@ -203,18 +203,18 @@ export function HorariosSemanaForm({
             onChange={(e) =>
               setConfigMassa((atual) => ({ ...atual, hora_inicio: e.target.value }))
             }
-            className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-xl border border-black/10 px-2 py-1 text-sm"
           />
-          <span className="text-zinc-500">até</span>
+          <span className="text-white0">até</span>
           <input
             type="time"
             value={configMassa.hora_fim}
             onChange={(e) =>
               setConfigMassa((atual) => ({ ...atual, hora_fim: e.target.value }))
             }
-            className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="rounded-xl border border-black/10 px-2 py-1 text-sm"
           />
-          <span className="text-zinc-500">a cada</span>
+          <span className="text-white0">a cada</span>
           <input
             type="number"
             min={1}
@@ -225,15 +225,15 @@ export function HorariosSemanaForm({
                 intervalo_min: Math.max(1, Number(e.target.value) || 1),
               }))
             }
-            className="w-16 rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-16 rounded-xl border border-black/10 px-2 py-1 text-sm"
           />
-          <span className="text-zinc-500">min</span>
+          <span className="text-white0">min</span>
 
           <button
             type="button"
             onClick={aplicarConfigMassa}
             disabled={diasSelecionados.length === 0}
-            className="rounded-lg bg-zinc-950 px-3 py-1.5 text-xs font-medium text-zinc-50 disabled:opacity-40 dark:bg-zinc-50 dark:text-zinc-950"
+            className="rounded-lg bg-navalha px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40"
           >
             Aplicar
             {diasSelecionados.length > 0 ? ` a ${diasSelecionados.length} dia(s)` : ""}
@@ -241,10 +241,10 @@ export function HorariosSemanaForm({
         </div>
       </div>
 
-      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
+      <div className="flex flex-col divide-y divide-black/[0.06]">
         {dias.map((d) => (
           <div key={d.dia_semana} className="py-3">
-            <label className="flex items-center gap-2 text-sm text-zinc-950 dark:text-zinc-50">
+            <label className="flex items-center gap-2 text-sm text-tinta">
               <input
                 type="checkbox"
                 checked={d.aberto}
@@ -259,7 +259,7 @@ export function HorariosSemanaForm({
                 className="h-4 w-4"
               />
               {DIAS[d.dia_semana]}
-              {!d.aberto && <span className="text-sm font-normal text-zinc-400">Fechado</span>}
+              {!d.aberto && <span className="text-sm font-normal text-aco/70">Fechado</span>}
             </label>
 
             {d.aberto && (
@@ -272,8 +272,8 @@ export function HorariosSemanaForm({
                       onClick={() => atualizarDia(d.dia_semana, { modo })}
                       className={`rounded-full border px-3 py-1 ${
                         d.modo === modo
-                          ? "border-zinc-950 bg-zinc-950 text-zinc-50 dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-950"
-                          : "border-zinc-300 text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-400"
+                          ? "border-navalha bg-navalha text-white"
+                          : "border-black/10 text-aco hover:border-navalha"
                       }`}
                     >
                       {modo === "automatico" ? "Automático" : "Manual"}
@@ -290,16 +290,16 @@ export function HorariosSemanaForm({
                         onChange={(e) =>
                           atualizarDia(d.dia_semana, { hora_inicio: e.target.value })
                         }
-                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        className="rounded-xl border border-black/10 px-2 py-1 text-sm"
                       />
-                      <span className="text-xs text-zinc-500">até</span>
+                      <span className="text-xs text-white0">até</span>
                       <input
                         type="time"
                         value={d.hora_fim}
                         onChange={(e) => atualizarDia(d.dia_semana, { hora_fim: e.target.value })}
-                        className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        className="rounded-xl border border-black/10 px-2 py-1 text-sm"
                       />
-                      <span className="text-xs text-zinc-500">a cada</span>
+                      <span className="text-xs text-white0">a cada</span>
                       <input
                         type="number"
                         min={1}
@@ -311,15 +311,15 @@ export function HorariosSemanaForm({
                             intervalo_min: valor === "" ? null : Math.max(1, Number(valor) || 1),
                           });
                         }}
-                        className="w-16 rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        className="w-16 rounded-xl border border-black/10 px-2 py-1 text-sm"
                       />
-                      <span className="text-xs text-zinc-500">min</span>
+                      <span className="text-xs text-white0">min</span>
                       {INTERVALOS_RAPIDOS.map((min) => (
                         <button
                           key={min}
                           type="button"
                           onClick={() => atualizarDia(d.dia_semana, { intervalo_min: min })}
-                          className="rounded-full border border-zinc-300 px-2 py-0.5 text-xs text-zinc-600 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-400"
+                          className="rounded-full border border-black/10 px-2 py-0.5 text-xs text-aco hover:border-navalha"
                         >
                           {min}
                         </button>
@@ -328,13 +328,13 @@ export function HorariosSemanaForm({
 
                     {d.intervalo_min == null ? (
                       <>
-                        <p className="text-xs text-zinc-500">
+                        <p className="text-xs text-white0">
                           Sem intervalo fixo — adicione os horários soltos que quiser:
                         </p>
                         {renderHorariosSoltos(d)}
                       </>
                     ) : (
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-white0">
                         <span>Pausa (ex.: almoço):</span>
                         <input
                           type="time"
@@ -342,7 +342,7 @@ export function HorariosSemanaForm({
                           onChange={(e) =>
                             atualizarDia(d.dia_semana, { pausa_inicio: e.target.value })
                           }
-                          className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                          className="rounded-xl border border-black/10 px-2 py-1 text-sm"
                         />
                         <span>até</span>
                         <input
@@ -351,7 +351,7 @@ export function HorariosSemanaForm({
                           onChange={(e) =>
                             atualizarDia(d.dia_semana, { pausa_fim: e.target.value })
                           }
-                          className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                          className="rounded-xl border border-black/10 px-2 py-1 text-sm"
                         />
                         <span>(opcional)</span>
                       </div>
@@ -366,16 +366,16 @@ export function HorariosSemanaForm({
         ))}
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-3 text-sm text-navalha">{error}</p>}
       {salvo && !error && (
-        <p className="mt-3 text-sm text-green-700 dark:text-green-400">Salvo!</p>
+        <p className="mt-3 text-sm text-emerald-700">Salvo!</p>
       )}
 
       <button
         type="button"
         onClick={salvar}
         disabled={isPending}
-        className="mt-4 rounded-full bg-zinc-950 px-4 py-2 text-sm font-medium text-zinc-50 hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+        className="mt-4 rounded-full bg-navalha px-4 py-2 text-sm font-medium text-white hover:bg-navalha-escuro disabled:opacity-50"
       >
         {isPending ? "Salvando..." : "Salvar horários"}
       </button>

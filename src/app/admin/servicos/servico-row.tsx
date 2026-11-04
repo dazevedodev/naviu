@@ -35,14 +35,14 @@ export function ServicoRow({
     <div
       className={`flex flex-col gap-2 rounded-xl border p-4 ${
         ativo
-          ? "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-          : "border-zinc-200 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900"
+          ? "border-black/[0.07] bg-white"
+          : "border-black/[0.07] bg-[#F6F1F1] opacity-60"
       }`}
     >
       <div className="flex items-center justify-between">
         <Link href={`/admin/servicos/${id}`} className="hover:underline">
-          <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{nome}</p>
-          <p className="text-xs text-zinc-500">
+          <p className="text-sm font-medium text-tinta">{nome}</p>
+          <p className="text-xs text-white0">
             {duracaoMin} min ·{" "}
             {preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </p>
@@ -54,8 +54,8 @@ export function ServicoRow({
             onClick={() => startTransition(() => alternarAtivoServico(id, !ativo))}
             className={`rounded-full px-3 py-1 text-xs font-medium disabled:opacity-50 ${
               ativo
-                ? "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                : "bg-zinc-950 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                ? "bg-[#F6F1F1] text-tinta hover:bg-rosado/50"
+                : "bg-navalha text-white hover:bg-navalha-escuro"
             }`}
           >
             {ativo ? "Ativo" : "Inativo — ativar"}
@@ -65,24 +65,24 @@ export function ServicoRow({
             <button
               disabled={isPending}
               onClick={() => setConfirmandoApagar(true)}
-              className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+              className="text-xs font-medium text-navalha hover:underline disabled:opacity-50"
             >
               Apagar
             </button>
           ) : (
             <span className="flex items-center gap-1 text-xs">
-              <span className="text-zinc-500">Apagar de vez?</span>
+              <span className="text-white0">Apagar de vez?</span>
               <button
                 disabled={isPending}
                 onClick={apagar}
-                className="font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+                className="font-medium text-navalha hover:underline disabled:opacity-50"
               >
                 Sim
               </button>
               <button
                 disabled={isPending}
                 onClick={() => setConfirmandoApagar(false)}
-                className="text-zinc-500 hover:underline"
+                className="text-white0 hover:underline"
               >
                 Não
               </button>
@@ -90,7 +90,7 @@ export function ServicoRow({
           )}
         </div>
       </div>
-      {erroApagar && <p className="text-xs text-red-600 dark:text-red-400">{erroApagar}</p>}
+      {erroApagar && <p className="text-xs text-navalha">{erroApagar}</p>}
     </div>
   );
 }

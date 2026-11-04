@@ -24,7 +24,7 @@ export function NovoServicoForm() {
         name="nome"
         placeholder="Nome do serviço"
         required
-        className="w-48 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        className="w-48 rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
       />
       <input
         name="duracao_min"
@@ -33,7 +33,7 @@ export function NovoServicoForm() {
         step={5}
         placeholder="Duração (min)"
         required
-        className="w-36 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        className="w-36 rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
       />
       <input
         name="preco"
@@ -42,9 +42,9 @@ export function NovoServicoForm() {
         step="0.01"
         placeholder="Preço (R$)"
         required
-        className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        className="w-32 rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha"
       />
-      <label className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+      <label className="flex items-center gap-1.5 text-xs text-aco">
         <input
           type="checkbox"
           name="mostrar_duracao"
@@ -56,11 +56,11 @@ export function NovoServicoForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-zinc-50 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950"
+        className="rounded-lg bg-navalha px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
         {isPending ? "Adicionando..." : "Adicionar"}
       </button>
-      {error && <p className="w-full text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="w-full text-sm text-navalha">{error}</p>}
     </form>
   );
 }

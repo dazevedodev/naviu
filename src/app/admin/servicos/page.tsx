@@ -15,7 +15,7 @@ export default async function ServicosPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="mb-6 text-lg font-semibold text-tinta">
         Serviços
       </h1>
 

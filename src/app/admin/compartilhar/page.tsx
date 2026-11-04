@@ -18,15 +18,15 @@ export default async function CompartilharPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="text-lg font-semibold text-tinta">
         Compartilhar
       </h1>
 
-      <div className="max-w-xl rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-        <h2 className="mb-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+      <div className="max-w-xl rounded-3xl bg-white p-6">
+        <h2 className="mb-1 text-sm font-semibold text-tinta">
           Link da {barbearia.nome}
         </h2>
-        <p className="mb-4 text-xs text-zinc-500">
+        <p className="mb-4 text-xs text-white0">
           Coloca no link da bio do Instagram, manda no WhatsApp, ou usa como
           se fosse o site da sua barbearia — a página já tem tudo pro
           cliente agendar sozinho.
@@ -38,11 +38,11 @@ export default async function CompartilharPage() {
       </div>
 
       {barbearia.plano !== "solo" && (
-        <div className="max-w-xl rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
-          <h2 className="mb-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+        <div className="max-w-xl rounded-3xl bg-white p-6">
+          <h2 className="mb-1 text-sm font-semibold text-tinta">
             Link por barbeiro
           </h2>
-          <p className="mb-4 text-xs text-zinc-500">
+          <p className="mb-4 text-xs text-white0">
             Cada barbeiro pode divulgar o próprio link — o cliente cai
             direto na escolha do serviço e do horário, já com esse barbeiro
             selecionado.
@@ -53,7 +53,7 @@ export default async function CompartilharPage() {
               const link = `${linkGeral}/${b.id}`;
               return (
                 <div key={b.id}>
-                  <p className="mb-1 text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                  <p className="mb-1 text-sm font-medium text-tinta">
                     {b.nome}
                   </p>
                   <LinkCompartilhavel
@@ -64,7 +64,7 @@ export default async function CompartilharPage() {
               );
             })}
             {(!barbeiros || barbeiros.length === 0) && (
-              <p className="text-sm text-zinc-400">Nenhum barbeiro ativo.</p>
+              <p className="text-sm text-aco/70">Nenhum barbeiro ativo.</p>
             )}
           </div>
         </div>

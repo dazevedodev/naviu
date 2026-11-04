@@ -24,13 +24,13 @@ export default async function NovoAgendamentoPage() {
 
   return (
     <div>
-      <Link href="/admin" className="text-xs text-zinc-500 hover:underline">
+      <Link href="/admin" className="text-xs text-white0 hover:underline">
         ← Agenda
       </Link>
-      <h1 className="mb-1 mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="mb-1 mt-2 text-lg font-semibold text-tinta">
         Novo agendamento
       </h1>
-      <p className="mb-6 text-sm text-zinc-500">
+      <p className="mb-6 text-sm text-white0">
         Pra lançar um atendimento marcado por telefone ou presencial, sem o
         cliente precisar usar o link público.
       </p>

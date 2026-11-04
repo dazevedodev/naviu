@@ -123,10 +123,10 @@ export default async function HorariosBarbeiroPage({
 
   return (
     <div>
-      <Link href="/admin/barbeiros" className="text-xs text-zinc-500 hover:underline">
+      <Link href="/admin/barbeiros" className="text-xs text-white0 hover:underline">
         ← Barbeiros
       </Link>
-      <h1 className="mb-6 mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+      <h1 className="mb-6 mt-2 text-lg font-semibold text-tinta">
         Disponibilidade de {barbeiro.nome}
       </h1>
 
@@ -137,11 +137,11 @@ export default async function HorariosBarbeiroPage({
           horarioFechamentoPadrao={barbearia.horario_fechamento_padrao}
         />
 
-        <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="mb-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+        <div className="rounded-2xl border border-black/[0.07] bg-white p-4">
+          <p className="mb-1 text-sm font-semibold text-tinta">
             Folgas e bloqueios
           </p>
-          <p className="mb-4 text-xs text-zinc-500">
+          <p className="mb-4 text-xs text-white0">
             Exceções ao horário fixo acima — férias, feriado, saída
             antecipada num dia específico. Pra vários dias seguidos (ex.:
             uma semana de férias), preenche &ldquo;de&rdquo; e &ldquo;até&rdquo; que ele marca
@@ -152,15 +152,15 @@ export default async function HorariosBarbeiroPage({
 
           <div className="mt-4 flex flex-col gap-2">
             {grupos.length === 0 && (
-              <p className="text-sm text-zinc-400">Nenhuma folga marcada.</p>
+              <p className="text-sm text-aco/70">Nenhuma folga marcada.</p>
             )}
             {grupos.map((g) => (
               <div
                 key={g.ids[0]}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 p-3 dark:border-zinc-800"
+                className="flex items-center justify-between rounded-xl border border-black/[0.07] p-3"
               >
                 <div>
-                  <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                  <p className="text-sm font-medium text-tinta">
                     {g.dataInicio === g.dataFim
                       ? formatarData(g.dataInicio)
                       : `${formatarData(g.dataInicio)} – ${formatarData(g.dataFim)}`}{" "}
@@ -169,7 +169,7 @@ export default async function HorariosBarbeiroPage({
                       ? `${g.horaInicio.slice(0, 5)} – ${g.horaFim.slice(0, 5)}`
                       : "dia inteiro"}
                   </p>
-                  {g.motivo && <p className="text-xs text-zinc-500">{g.motivo}</p>}
+                  {g.motivo && <p className="text-xs text-white0">{g.motivo}</p>}
                 </div>
                 <form
                   action={async () => {
@@ -177,7 +177,7 @@ export default async function HorariosBarbeiroPage({
                     await removerFolga(g.ids, id);
                   }}
                 >
-                  <button className="text-xs text-red-600 hover:underline dark:text-red-400">
+                  <button className="text-xs text-navalha hover:underline">
                     remover
                   </button>
                 </form>

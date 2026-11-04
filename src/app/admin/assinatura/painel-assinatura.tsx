@@ -21,30 +21,30 @@ type Props = {
 };
 
 const CAMPO =
-  "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900";
+  "w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-navalha";
 const BOTAO =
-  "w-full rounded-full bg-zinc-950 py-2.5 text-sm font-medium text-zinc-50 hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200";
+  "w-full rounded-full bg-navalha py-2.5 text-sm font-medium text-white hover:bg-navalha-escuro disabled:opacity-50";
 const BOTAO_SECUNDARIO =
-  "rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-900";
+  "rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-tinta hover:bg-[#F6F1F1] disabled:opacity-50";
 
 function EscolhaForma({ padrao }: { padrao: Forma }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <legend className="mb-2 text-sm font-medium text-tinta">
         Como você quer pagar
       </legend>
-      <label className="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 has-[:checked]:border-zinc-950 dark:border-zinc-800 dark:has-[:checked]:border-zinc-50">
+      <label className="flex items-start gap-3 rounded-xl border border-black/[0.07] p-3 has-[:checked]:border-navalha">
         <input type="radio" name="forma" value="cartao" defaultChecked={padrao === "cartao"} className="mt-1" />
         <span className="text-sm">
-          <span className="block font-medium text-zinc-950 dark:text-zinc-50">Cartão de crédito</span>
-          <span className="text-zinc-500">Cobra sozinho todo mês. Você não precisa lembrar.</span>
+          <span className="block font-medium text-tinta">Cartão de crédito</span>
+          <span className="text-white0">Cobra sozinho todo mês. Você não precisa lembrar.</span>
         </span>
       </label>
-      <label className="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 has-[:checked]:border-zinc-950 dark:border-zinc-800 dark:has-[:checked]:border-zinc-50">
+      <label className="flex items-start gap-3 rounded-xl border border-black/[0.07] p-3 has-[:checked]:border-navalha">
         <input type="radio" name="forma" value="pix_boleto" defaultChecked={padrao === "pix_boleto"} className="mt-1" />
         <span className="text-sm">
-          <span className="block font-medium text-zinc-950 dark:text-zinc-50">Pix ou boleto</span>
-          <span className="text-zinc-500">Chega uma fatura por e-mail todo mês pra você pagar.</span>
+          <span className="block font-medium text-tinta">Pix ou boleto</span>
+          <span className="text-white0">Chega uma fatura por e-mail todo mês pra você pagar.</span>
         </span>
       </label>
     </fieldset>
@@ -76,8 +76,8 @@ export function PainelAssinatura(props: Props) {
 
   const mensagens = (
     <>
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {aviso && <p className="text-sm text-green-700 dark:text-green-400">{aviso}</p>}
+      {error && <p className="text-sm text-navalha">{error}</p>}
+      {aviso && <p className="text-sm text-emerald-700">{aviso}</p>}
     </>
   );
 
@@ -85,20 +85,20 @@ export function PainelAssinatura(props: Props) {
     return (
       <form
         action={(formData) => rodar(() => assinar(formData))}
-        className="flex max-w-2xl flex-col gap-6 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+        className="flex max-w-2xl flex-col gap-6 rounded-3xl bg-white p-6"
       >
         <fieldset>
-          <legend className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          <legend className="mb-3 text-sm font-medium text-tinta">
             Escolha o plano
           </legend>
           <div className="grid gap-3 sm:grid-cols-2">
             {PLANOS.map((plano) => (
               <label
                 key={plano.id}
-                className="flex cursor-pointer flex-col rounded-xl border border-zinc-200 p-4 has-[:checked]:border-zinc-950 has-[:checked]:ring-1 has-[:checked]:ring-zinc-950 dark:border-zinc-800 dark:has-[:checked]:border-zinc-50 dark:has-[:checked]:ring-zinc-50"
+                className="flex cursor-pointer flex-col rounded-xl border border-black/[0.07] p-4 has-[:checked]:border-navalha has-[:checked]:ring-1 has-[:checked]:ring-navalha"
               >
                 <span className="flex items-center justify-between">
-                  <span className="font-semibold text-zinc-950 dark:text-zinc-50">{plano.nome}</span>
+                  <span className="font-semibold text-tinta">{plano.nome}</span>
                   <input
                     type="radio"
                     name="plano"
@@ -106,11 +106,11 @@ export function PainelAssinatura(props: Props) {
                     defaultChecked={plano.id === props.planoAtual}
                   />
                 </span>
-                <span className="mt-1 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+                <span className="mt-1 text-lg font-semibold text-tinta">
                   {formatarReais(plano.valor)}
-                  <span className="text-sm font-normal text-zinc-500">/mês</span>
+                  <span className="text-sm font-normal text-white0">/mês</span>
                 </span>
-                <span className="mt-1 text-sm text-zinc-500">
+                <span className="mt-1 text-sm text-white0">
                   {plano.limiteBarbeiros === 1 ? "1 barbeiro" : `Até ${plano.limiteBarbeiros} barbeiros`}
                 </span>
               </label>
@@ -122,7 +122,7 @@ export function PainelAssinatura(props: Props) {
 
         {props.precisaDocumento && (
           <div>
-            <label htmlFor="cpf_cnpj" className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="cpf_cnpj" className="mb-1 block text-sm font-medium text-tinta">
               CPF ou CNPJ de quem paga
             </label>
             <input
@@ -134,7 +134,7 @@ export function PainelAssinatura(props: Props) {
               placeholder="Só números"
               className={CAMPO}
             />
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-white0">
               O Asaas, que processa o pagamento, pede pra emitir a cobrança.
             </p>
           </div>
@@ -153,7 +153,7 @@ export function PainelAssinatura(props: Props) {
   const outraForma: Forma = props.formaAtual === "cartao" ? "pix_boleto" : "cartao";
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="flex max-w-2xl flex-col gap-4 rounded-3xl bg-white p-6">
       {props.faturaUrl && (
         <button type="button" disabled={isPending} onClick={() => rodar(pagarAgora)} className={BOTAO}>
           {isPending ? "Abrindo..." : "Pagar fatura em aberto"}
@@ -201,7 +201,7 @@ export function PainelAssinatura(props: Props) {
           if (!confirm("Cancelar a assinatura? Você continua usando até o fim do período já pago.")) return;
           rodar(cancelarAssinatura, "Assinatura cancelada. Você usa até o fim do período pago.");
         }}
-        className="self-start text-sm text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+        className="self-start text-sm text-navalha hover:underline disabled:opacity-50"
       >
         Cancelar assinatura
       </button>

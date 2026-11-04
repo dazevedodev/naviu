@@ -5,16 +5,8 @@ import { acessoAte, acessoLiberado, diasRestantes } from "@/lib/assinatura";
 import type { Barbearia } from "@/lib/types";
 import { TelaAssinatura } from "./assinatura/tela-assinatura";
 import { LogoutButton } from "./logout-button";
-
-const NAV = [
-  { href: "/admin", label: "Agenda" },
-  { href: "/admin/barbeiros", label: "Barbeiros" },
-  { href: "/admin/servicos", label: "Serviços" },
-  { href: "/admin/compartilhar", label: "Compartilhar" },
-  { href: "/admin/aparencia", label: "Aparência" },
-  { href: "/admin/configuracoes", label: "Configurações" },
-  { href: "/admin/assinatura", label: "Assinatura" },
-];
+import { Icone } from "./menu-admin";
+import { NavAbas, NavLateral } from "./nav-admin";
 
 // O WhatsApp bloqueia ser embutido em iframe de outro site (CSP
 // frame-ancestors só permite domínios deles) — o mais perto que dá de
@@ -39,7 +31,7 @@ function AvisoAssinatura({ barbearia }: { barbearia: Barbearia }) {
   return (
     <Link
       href="/admin/assinatura"
-      className="block bg-amber-100 px-6 py-2 text-center text-sm font-medium text-amber-900 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-200"
+      className="block bg-rosado px-6 py-2 text-center text-sm font-medium text-navalha-escuro hover:bg-rosado/80"
     >
       {texto} <span className="underline">Ver assinatura</span>
     </Link>
@@ -56,48 +48,68 @@ export default async function AdminLayout({
   const liberado = acessoLiberado(barbearia);
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      {liberado && <AvisoAssinatura barbearia={barbearia} />}
-      <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-3">
-          <Image src="/marca/naviu-simbolo.svg" alt="Naviu" width={32} height={32} unoptimized />
-          <div>
-            <p className="font-semibold text-zinc-950 dark:text-zinc-50">
-              {barbearia.nome}
-            </p>
-            <p className="text-xs text-zinc-500">
-              naviu.app.br/{barbearia.slug}
-            </p>
-          </div>
-        </div>
-        <LogoutButton />
-      </header>
+    <div className="flex flex-1 bg-[#F6F1F1] font-sans text-tinta">
+      {/* Lateral escura, só no computador */}
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-tinta px-4 py-6 text-white lg:flex">
+        <Link href="/admin" className="mb-8 flex items-center gap-3 px-2">
+          <Image src="/marca/naviu-simbolo-branco.svg" alt="" width={34} height={34} unoptimized />
+          <span className="min-w-0">
+            <span className="block truncate font-display text-sm font-semibold">{barbearia.nome}</span>
+            <span className="block text-xs text-white/50">Painel Naviu</span>
+          </span>
+        </Link>
 
-      <div className="flex flex-1 flex-col sm:flex-row">
-        <nav className="flex gap-1 overflow-x-auto border-b border-zinc-200 bg-white p-4 sm:w-48 sm:flex-col sm:border-b-0 sm:border-r dark:border-zinc-800 dark:bg-zinc-950">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="shrink-0 rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="flex-1 overflow-y-auto">
+          <NavLateral />
+        </div>
+
+        <div className="mt-4 flex flex-col gap-1 border-t border-white/10 pt-4">
+          <a
+            href={`/${barbearia.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white"
+          >
+            <Icone nome="compartilhar" />
+            Ver minha página
+          </a>
           <a
             href={WHATSAPP_WEB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 rounded-lg px-3 py-2 text-sm text-green-700 hover:bg-zinc-100 dark:text-green-400 dark:hover:bg-zinc-900"
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white"
           >
-            WhatsApp Web ↗
+            <Icone nome="whatsapp" />
+            WhatsApp Web
           </a>
-        </nav>
+          <LogoutButton className="rounded-xl px-3 py-2 text-left text-sm text-white/50 hover:bg-white/10 hover:text-white" />
+        </div>
+      </aside>
 
-        <main className="min-w-0 flex-1 p-6">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {liberado && <AvisoAssinatura barbearia={barbearia} />}
+
+        {/* Topo, só no celular */}
+        <header className="flex items-center gap-3 bg-tinta px-4 py-3 text-white lg:hidden">
+          <Image src="/marca/naviu-simbolo-branco.svg" alt="" width={28} height={28} unoptimized />
+          <p className="min-w-0 flex-1 truncate font-display text-sm font-semibold">{barbearia.nome}</p>
+          <a
+            href={WHATSAPP_WEB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Abrir WhatsApp Web"
+            className="rounded-full p-2 text-white/80 hover:bg-white/10"
+          >
+            <Icone nome="whatsapp" />
+          </a>
+        </header>
+
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 lg:px-10 lg:pb-12 lg:pt-10">
           {liberado ? children : <TelaAssinatura barbearia={barbearia} />}
         </main>
       </div>
+
+      <NavAbas />
     </div>
   );
 }

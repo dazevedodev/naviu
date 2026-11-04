@@ -25,12 +25,12 @@ export function LinkCompartilhavel({
         readOnly
         value={url}
         onFocus={(e) => e.target.select()}
-        className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+        className="min-w-0 flex-1 rounded-xl border border-black/10 bg-[#F6F1F1] px-3 py-2 text-sm text-tinta outline-none"
       />
       <button
         type="button"
         onClick={copiar}
-        className="rounded-lg bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+        className="rounded-lg bg-navalha px-3 py-2 text-xs font-medium text-white hover:bg-navalha-escuro"
       >
         {copiado ? "Copiado!" : "Copiar link"}
       </button>
